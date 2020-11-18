@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import models
 
 from product.models import Product
@@ -10,7 +8,7 @@ class User(TimeStampModel):
     password          = models.CharField(max_length=1000)
     email             = models.EmailField()
     profile_image_url = models.URLField(max_length=1000, null=True)
-    follow            = models.ManyToManyField('self', through='Follow')
+    follow            = models.ManyToManyField('self', through='Follow',symmetrical=False)
     product_bookmark  = models.ManyToManyField('product.Product', through='ProductBookmark')
     post_bookmark     = models.ManyToManyField('post.Post', through='PostBookmark')
 
@@ -51,29 +49,3 @@ class Like(models.Model):
 
     class Meta:
         db_table = 'likes'
-
-
-class Cart(models.Model):
-    product_detail  = models.ForeignKey('product.ProductDetail', on_delete=models.CASCADE)
-    order           = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True)
-    shipment        = models.CharField(max_length=100)
-    tracking_number = models.CharField(max_length=200)
-    company         = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'carts'
-
-
-class Order(TimeStampModel):
-    uuid       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user       = models.ForeignKey('User', on_delete=models.SET_NULL, null=True)
-
-    class Meta:
-        db_table = 'orders'
-
-
-class Status(models.Model):
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'statuses'

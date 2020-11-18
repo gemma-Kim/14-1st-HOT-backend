@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'post',
     'product',
     'user',
+    'order',
 
 ]
 
