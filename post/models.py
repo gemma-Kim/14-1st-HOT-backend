@@ -1,9 +1,14 @@
 from django.db import models
 
-class Post(models.Model):
+class TimeStampModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+
+    class Meta:
+        abstract = True
+
+class Post(TimeStampModel):
     content    = models.TextField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     author     = models.ForeignKey('user.User', on_delete=models.CASCADE)
     product    = models.ManyToManyField('product.Product', through='ProductInPost')
     tag        = models.ManyToManyField('Tag', through='PostTag')
@@ -30,10 +35,8 @@ class ProductInPost(models.Model):
         db_table = 'products_in_posts'
 
 
-class Comment(models.Model):
+class Comment(TimeStampModel):
     content    = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     post       = models.ForeignKey('Post', on_delete=models.CASCADE)
     author     = models.ForeignKey('user.User', on_delete=models.CASCADE)
     parent     = models.ForeignKey('self', related_name='reply', on_delete=models.CASCADE)

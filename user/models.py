@@ -3,31 +3,22 @@ import uuid
 from django.db import models
 
 from product.models import Product
+from post.models    import TimeStampModel
 
-
-class User(models.Model):
-    username         = models.CharField(max_length=200)
-    password         = models.CharField(max_length=1000)
-    email            = models.EmailField()
-    created_at       = models.DateTimeField(auto_now_add=True)
-    updated_at       = models.DateTimeField(auto_now=True)
-    follow           = models.ManyToManyField('self', through='Follow')
-    product_bookmark = models.ManyToManyField('product.Product', through='ProductBookmark')
-    post_bookmark    = models.ManyToManyField('post.Post', through='PostBookmark')
+class User(TimeStampModel):
+    username          = models.CharField(max_length=200)
+    password          = models.CharField(max_length=1000)
+    email             = models.EmailField()
+    profile_image_url = models.URLField(max_length=1000, null=True)
+    follow            = models.ManyToManyField('self', through='Follow')
+    product_bookmark  = models.ManyToManyField('product.Product', through='ProductBookmark')
+    post_bookmark     = models.ManyToManyField('post.Post', through='PostBookmark')
 
     class Meta:
         db_table = 'users'
 
     def __str__(self):
         return self.username
-
-
-class ProfileImage(models.Model):
-    profile_image_url = models.URLField(max_length=1000)
-    user              = models.ForeignKey('User', on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'profile_images'
 
 
 class Follow(models.Model):
@@ -73,11 +64,9 @@ class Cart(models.Model):
         db_table = 'carts'
 
 
-class Order(models.Model):
+class Order(TimeStampModel):
     uuid       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user       = models.ForeignKey('User', on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'orders'
