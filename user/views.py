@@ -16,18 +16,17 @@ class Register(View):
 
             email     = data['email']
             username  = data['username']
-            password1 = data['password1']
-            password2 = data['password2']
+            password  = data['password']
 
             email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
-            if not re.match(email_validation, email) or User.objects.filter(Q (email=email) | Q (username=username)).exists():
+            if not re.match(email_validation, email):
                 return JsonResponse({'message':'UNVALID_EMAIL'}, status=400)
 
-            if password1 != password2:
-                return JsonResponse({'message':'UNVALID_PASSWORD'}, status=400)
+            if User.objects.filter(Q (email=email) | Q (username=username)).exists():
+                return JsonResponse({'message':'EXIST_USER'}, status=400)
 
-            hashed_password = bcrypt.hashpw(password1.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
             User.objects.create(
                 username = username,
@@ -64,7 +63,7 @@ class SignIn(View):
             return JsonResponse({'message':'UNKNOWN_USER'}, status=400)
 
         except KeyError:
-                return JsonResponse({'message':'KEY_ERROR'}, status=400)
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 # 확장예정.
 #class Ex(View):
@@ -72,3 +71,8 @@ class SignIn(View):
 #    def post(self, request):
 #        user_email = request.user.email
 #        return JsonResponse({'result':user_email}, status=200)
+
+#class Follow(View):
+#    @login_decorator
+#    def post(self, request):
+#        data = json.loads(request.bod

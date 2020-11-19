@@ -16,7 +16,7 @@ def login_decorator(func):
 
             return func(self, request, *args, **kwargs)
 
-        except jwt.DecodeError:
+        except jwt.exceptions.DecodeError:
             return JsonResponse({'message':'UNVALID_TOKEN'}, status=403)
 
         except User.DoesNotExist:
