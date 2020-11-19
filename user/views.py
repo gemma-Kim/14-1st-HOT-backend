@@ -5,7 +5,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User
+from user.models      import User, Follow
 from user.utils       import login_decorator
 
 
@@ -21,9 +21,9 @@ class Register(View):
             email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
             if not re.match(email_validation, email):
-                return JsonResponse({'message':'UNVALID_EMAIL'}, status=400)
+                return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
 
-            if User.objects.filter(Q (email=email) | Q (username=username)).exists():
+            if User.objects.filter(Q(email=email) | Q(username=username)).exists():
                 return JsonResponse({'message':'EXIST_USER'}, status=400)
 
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -34,7 +34,7 @@ class Register(View):
                 password = hashed_password
             )
 
-            return JsonResponse({'message':'SIGN_UP_SUCCESS'}, status=200)
+            return JsonResponse({'message':'SUCCESS'}, status=200)
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
@@ -50,7 +50,7 @@ class SignIn(View):
             email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
             if not re.match(email_validation, email):
-                return JsonResponse({'message':'UNVALID_EMAIL'}, status=400)
+                return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
 
             if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                 return JsonResponse({'message':'WRONG_PASSWORD'}, status=400)
@@ -75,4 +75,13 @@ class SignIn(View):
 #class Follow(View):
 #    @login_decorator
 #    def post(self, request):
-#        data = json.loads(request.bod
+#        try:
+#            data = json.loads(request.body)
+#            user = User.objects.get(id=request.user.id)
+#            followee = User.objects.get(id=user.id)
+#            follower = User.objects.get(username=data['username'])
+#
+#            user.followee_user.add(User.objects.get(User.objects.get(username=data['username'])
+#            follower.foollower_user.add(User.objects.get(user))
+#
+#            return JsonResponse({'message':'SUCCESS'}, status=200)
