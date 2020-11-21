@@ -9,7 +9,7 @@ from user.models      import User, Follow
 from user.utils       import login_decorator
 
 
-class Register(View):
+class RegisterView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -40,7 +40,7 @@ class Register(View):
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
-class SignIn(View):
+class LogInView(View):
     def post(self, request):
         try:
             signin_data      = json.loads(request.body)
@@ -65,23 +65,51 @@ class SignIn(View):
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
-# 확장예정.
-#class Ex(View):
-#    @login_decorator
-#    def post(self, request):
-#        user_email = request.user.email
-#        return JsonResponse({'result':user_email}, status=200)
 
-#class Follow(View):
-#    @login_decorator
-#    def post(self, request):
-#        try:
-#            data = json.loads(request.body)
-#            user = User.objects.get(id=request.user.id)
-#            followee = User.objects.get(id=user.id)
-#            follower = User.objects.get(username=data['username'])
-#
-#            user.followee_user.add(User.objects.get(User.objects.get(username=data['username'])
-#            follower.foollower_user.add(User.objects.get(user))
-#
-#            return JsonResponse({'message':'SUCCESS'}, status=200)
+class FollowView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if type(data['id']) == str:
+                return JsonResponse({'message':'TYPE_ERROR'}, status=400)
+
+            if user.id == data['id']:
+                return JsonResponse({'message':'DUPLICATION_ID'}, status=400)
+
+            if Follow.objects.filter(follower_id=user.id, followee_id=data['id']).exists():
+                return JsonResponse({'message':'INVALID_FOLLOW'}, status=400)
+
+            Follow.objects.create(follower_id=user.id, followee_id=data['id'])
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+    @login_decorator
+    def delete(self, request):
+        try:
+            data          = json.loads(request.body)
+            user          = User.objects.get(id=request.user.id)
+            follow_status = Follow.objects.filter(follower_id=user.id, followee_id=data['id'])
+
+            if not follow_status.exists():
+                return JsonResponse({'messsage':'INVALID_UNFOLLOW'}, status=400)
+
+            follow_status.delete()
+
+            return JsonResponse({'message':'DELETED'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+    @login_decorator
+    def get(self, request):
+        user       = User.objects.get(id=request.user.id)
+        follower   = Follow.objects.filter(followee_id=user.id).count()
+        following  = Follow.objects.filter(follower_id=user.id).count()
+
+        return JsonResponse({'follower':follower, 'following':following}, status=200)
