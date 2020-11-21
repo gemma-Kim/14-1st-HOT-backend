@@ -42,6 +42,12 @@ class PostBookmark(models.Model):
     class Meta:
         db_table = 'post_bookmarks'
 
+class CollectionBookmark(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    collection = models.ForeignKey('product.Collection', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'collection_bookmarks'
 
 class Like(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)

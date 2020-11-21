@@ -29,9 +29,9 @@ class SubCategory(models.Model):
 
 
 class Collection(models.Model):
-    name           = models.CharField(max_length=200)
-    seller         = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
-    sub_categories = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
+    name         = models.CharField(max_length=200)
+    seller       = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
+    sub_category = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'collections'
@@ -40,24 +40,26 @@ class Collection(models.Model):
         return self.name
 
 
+class AdditionalProduct(models.Model):
+    main_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='main')
+    sub_product  = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='sub')
+
+    class Meta:
+        db_table = 'additional_products'
+
+
 class Product(models.Model):
-    name               = models.CharField(max_length=200)
-    collection         = models.ForeignKey('Collection', on_delete=models.SET_NULL, null=True)
-    additional_product = models.ManyToManyField('self', through ='SubProduct')
+    name                = models.CharField(max_length=200)
+    collection          = models.ForeignKey('Collection', on_delete=models.SET_NULL, null=True)
+    additional_products = models.ManyToManyField('self', through ='AdditionalProduct')
+    seller              = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
+    sub_category        = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'products'
 
     def __str__(self):
         return self.name
-
-
-class SubProduct(models.Model):
-    main_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='main')
-    sub_product  = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='sub')
-
-    class Meta:
-        db_table = 'sub_products'
 
 
 class ProductDetail(models.Model):
