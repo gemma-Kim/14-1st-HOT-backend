@@ -1,13 +1,13 @@
 
 import json
 
-from django.http import JsonResponse
-from django.views import View
+from django.http      import JsonResponse
+from django.views     import View
 from django.db.models import Q
 
 from post.models import Post, PostImage, ProductInPost, Comment, Tag, PostTag
 from user.models import User
-from user.utils import login_decorator
+from user.utils  import login_decorator
 
 class PostView(View):
     @login_decorator
@@ -20,7 +20,7 @@ class PostView(View):
 
         created_post = Post.objects.create(
             content = data['content'],
-            author = user
+            author  = user
         )
 
         try:
@@ -29,7 +29,7 @@ class PostView(View):
 
             for image in data['images']:
                 PostImage.objects.create(
-                    post = created_post,
+                    post      = created_post,
                     image_url = image
                 )
 
@@ -41,7 +41,7 @@ class PostView(View):
                 for tag in data['tags']:
                     created_tag = Tag.objects.create(name = tag)
                     PostTag.objects.create(
-                        tag = created_tag,
+                        tag  = created_tag,
                         post = created_post
                     )
 
