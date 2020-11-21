@@ -5,11 +5,12 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User, Follow
+from user.models      import User, Follow, Like
+from post.models      import Post
 from user.utils       import login_decorator
 
 
-class Register(View):
+class RegisterView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -40,7 +41,7 @@ class Register(View):
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
-class SignIn(View):
+class LogInView(View):
     def post(self, request):
         try:
             signin_data      = json.loads(request.body)
@@ -92,8 +93,8 @@ class FollowView(View):
     @login_decorator
     def delete(self, request):
         try:
-            data = json.loads(request.body)
-            user = User.objects.get(id=request.user.id)
+            data          = json.loads(request.body)
+            user          = User.objects.get(id=request.user.id)
             follow_status = Follow.objects.filter(follower_id=user.id, followee_id=data['id'])
 
             if not follow_status.exists():
@@ -108,9 +109,59 @@ class FollowView(View):
 
     @login_decorator
     def get(self, request):
-        user = User.objects.get(id=request.user.id)
-        follower = Follow.objects.filter(follower_id=user.id).count()
-        followee = Follow.objects.filter(followee_id=user.id).count()
+        user      = User.objects.get(id=request.user.id)
+        follower  = Follow.objects.filter(followee_id=user.id).count()
+        following = Follow.objects.filter(follower_id=user.id).count()
 
-        return JsonResponse({'follower':follower, 'followee':followee}, status=200)
+        return JsonResponse({'follower':follower, 'following':following}, status=200)
 
+
+class LikeView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+                return JsonResponse({'message':'INVALID_LIKE'}, status=400)
+
+            Like.objects.create(user_id=user.id, post_id=data['id'])
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':"KEY_ERROR"}, status=400)
+
+    @login_decorator
+    def delete(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if not Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+                return JsonResponse({'message':'INVALID_DELETE'}, status=400)
+
+            Like.objects.filter(user_id=user.id, post_id=data['id']).delete()
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+
+    @login_decorator
+    def get(self, request):
+        posts = Post.objects.select_related('author').prefetch_related('postimage_set','like_set')
+
+        context = [
+            {
+                'post_id'    : post.id,
+                'author'     : post.author.username,
+                'post_image' : post.postimage_set.all()[0].image_url,
+                'like'       : post.like_set.count()
+            }
+            for post in posts
+        ]
+
+        return JsonResponse({'result': context}, status=200)
