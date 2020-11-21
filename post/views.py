@@ -10,10 +10,10 @@ from user.models import User
 from user.utils import login_decorator
 
 class PostView(View):
-#    @login_decorator
+    @login_decorator
     def post(self, request):
         data = json.loads(request.body)
-        user = User.objects.get(id=1)
+        user = request.user
 
         if not 'content' in data or not 'images' in data or not 'tags' in data:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
@@ -24,6 +24,9 @@ class PostView(View):
         )
 
         try:
+            if not data['images']:
+                return JsonResponse({'message':'IMAGE_PLZ'}, status=400)
+
             for image in data['images']:
                 PostImage.objects.create(
                     post = created_post,
@@ -34,12 +37,13 @@ class PostView(View):
             return JsonResponse({'message':'IMAGES_TYPE_ERROR'}, status=400)
 
         try:
-            for tag in data['tags']:
-                created_tag = Tag.objects.create(name = tag)
-                PostTag.objects.create(
-                    tag = created_tag,
-                    post = created_post
-                )
+            if data['tags']:
+                for tag in data['tags']:
+                    created_tag = Tag.objects.create(name = tag)
+                    PostTag.objects.create(
+                        tag = created_tag,
+                        post = created_post
+                    )
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
