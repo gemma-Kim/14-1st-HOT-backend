@@ -5,7 +5,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User, Follow, Like
+from user.models      import User, Follow, Like, PostBookmark, ProductBookmark
 from user.utils       import login_decorator
 
 
@@ -143,6 +143,72 @@ class LikeView(View):
                 return JsonResponse({'message':'INVALID_DELETE'}, status=400)
 
             Like.objects.filter(user_id=user.id, post_id=data['id']).delete()
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+
+class BookmarkView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if data['post_id']:
+                if PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
+                    return JsonResponse({'messsage':'INVALID_BOOKMARK'}, status=400)
+
+                PostBookmark.objects.create(user_id=user.id, post_id=data['post_id'])
+
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+
+            elif data['product_id']:
+                if ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
+                    return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
+
+                ProductBookmark.objects.create(user_id=user.id, product_id=data['product_id'])
+
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+
+            if CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id'].exists():
+                return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
+
+            CollectionBookmark.objects.create(user_id=user.id, collection_id=data['collection_id'])
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+    @login_decorator
+    def delete(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if data['post_id']:
+                if not PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
+                    return JsonResponse({'messsage':'INVALID_DELETE'}, status=400)
+
+                PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).delete()
+
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+
+            elif data['product_id']:
+                elif not ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
+                    return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
+
+                ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).delete()
+
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+
+            if not CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id'].exists():
+                return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
+
+            CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).delete()
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
