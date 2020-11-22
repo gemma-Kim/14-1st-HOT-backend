@@ -5,7 +5,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User, Follow, Like, PostBookmark, ProductBookmark
+from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from user.utils       import login_decorator
 
 
