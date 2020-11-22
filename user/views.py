@@ -5,11 +5,11 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User, Follow
+from user.models      import User, Follow, Like
 from user.utils       import login_decorator
 
 
-class Register(View):
+class RegisterView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -40,7 +40,7 @@ class Register(View):
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
-class SignIn(View):
+class SignInView(View):
     def post(self, request):
         try:
             signin_data      = json.loads(request.body)
@@ -65,23 +65,86 @@ class SignIn(View):
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
-# 확장예정.
-#class Ex(View):
-#    @login_decorator
-#    def post(self, request):
-#        user_email = request.user.email
-#        return JsonResponse({'result':user_email}, status=200)
 
-#class Follow(View):
-#    @login_decorator
-#    def post(self, request):
-#        try:
-#            data = json.loads(request.body)
-#            user = User.objects.get(id=request.user.id)
-#            followee = User.objects.get(id=user.id)
-#            follower = User.objects.get(username=data['username'])
-#
-#            user.followee_user.add(User.objects.get(User.objects.get(username=data['username'])
-#            follower.foollower_user.add(User.objects.get(user))
-#
-#            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class LikeView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+                return JsonResponse({'message':'INVALID_LIKE'}, status=400)
+
+            Like.objects.create(user_id=user.id, post_id=data['id'])
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':"KEY_ERROR"}, status=400)
+
+    @login_decorator
+    def delete(self, request):
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+
+            if not Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+                return JsonResponse({'message':'INVALID_DELETE'}, status=400)
+
+            Like.objects.filter(user_id=user.id, post_id=data['id']).delete()
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
