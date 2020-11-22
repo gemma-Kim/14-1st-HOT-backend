@@ -32,6 +32,7 @@ class PostDetailView(View):
                     'updated_at'      : post.updated_at,
                     'likes_count'     : post.like_set.count(),
                     'bookmarks_count' : post.postbookmark_set.count(),
+                    'comments_count'  : post.comment_set.count(),
                     'likes_detail'    : [
                         {
                             'user_id'  : like.user.id,
