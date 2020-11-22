@@ -16,22 +16,42 @@ class PostDetailView(View):
                         'posttag_set__tag',
                         'postimage_set',
                         'comment_set',
-                        'comment_set__author'
+                        'comment_set__author',
+                        'like_set',
+                        'like_set__user',
+                        'postbookmark_set',
+                        'postbookmark_set__user'
                     ).select_related('author').get(id=post_id)
         except Exception as error_message:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
 
         result = {
-                    'post_id'    : post.id,
-                    'content'    : post.content,
-                    'created_at' : post.created_at,
-                    'updated_at' : post.updated_at,
+                    'post_id'         : post.id,
+                    'content'         : post.content,
+                    'created_at'      : post.created_at,
+                    'updated_at'      : post.updated_at,
+                    'likes_count'     : post.like_set.count(),
+                    'bookmarks_count' : post.postbookmark_set.count(),
+                    'likes_detail'    : [
+                        {
+                            'user_id'  : like.user.id,
+                            'username' : like.user.username
+                        }
+                        for like in post.like_set.all()
+                    ],
+                    'bookmarks_detail' : [
+                        {
+                            'user_id'  : bookmark.user.id,
+                            'username' : bookmark.user.username
+                        }
+                        for bookmark in post.postbookmark_set.all()
+                    ],
                     'author' : {
                         'author_id'     : post.author.id,
                         'username'      : post.author.username,
                         'profile_image' : post.author.profile_image_url
                     },
-                    'tags' : [ tag.tag.name for tag in post.posttag_set.all() ],
+                    'tags'     : [ tag.tag.name for tag in post.posttag_set.all() ],
                     'comments' : [
                         {
                             'id': comment.id,
