@@ -9,10 +9,15 @@ from user.models import User, Like, PostBookmark
 
 class PostView(View):
     def get(self, request):
-        posts = Post.objects.prefetch_related\
-                ('like_set', 'postbookmark_set', 'comment_set', 'comment_set__author', 'postimage_set').\
-                select_related\
-                ('author').all()
+        posts = Post.objects.prefetch_related(
+            'like_set',
+            'like_set__user',
+            'postbookmark_set',
+            'postbookmark_set__user',
+            'comment_set',
+            'comment_set__author',
+            'postimage_set',
+        ).select_related('author').all()
 
         results = [
             {
@@ -22,9 +27,23 @@ class PostView(View):
                 'post_author_username' : post.author.username,
                 'post_author_profile'  : post.author.profile_image_url,
                 'post_mainimage_url'   : post.postimage_set.all()[0].image_url,
-                'post_likes'           : post.like_set.count(),
-                'post_bookmarks'       : post.postbookmark_set.count(),
-                'post_comments'        : post.comment_set.count(),
+                'post_likes_count'     : post.like_set.count(),
+                'post_bookmarks_count' : post.postbookmark_set.count(),
+                'post_comments_count'  : post.comment_set.count(),
+                'likes_detail' : [
+                    {
+                        'user_id'  : like.user.id,
+                        'username' : like.user.username
+                    }
+                    for like in post.like_set.all()
+                ],
+                'bookmarks_detail' : [
+                    {
+                        'user_id'  : bookmark.user.id,
+                        'username' : bookmark.user.username
+                    }
+                    for bookmark in post.postbookmark_set.all()
+                ],
                 'comment' : [
                     {
                         'author_id'       : comment.author.id,
