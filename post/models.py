@@ -39,7 +39,7 @@ class Comment(TimeStampModel):
     content    = models.TextField()
     post       = models.ForeignKey('Post', on_delete=models.CASCADE)
     author     = models.ForeignKey('user.User', on_delete=models.CASCADE)
-    parent     = models.ForeignKey('self', related_name='reply', on_delete=models.CASCADE)
+    parent     = models.ForeignKey('self', related_name='reply', on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'comments'
