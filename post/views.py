@@ -18,23 +18,25 @@ class PostView(View):
         if not 'content' in data or not 'images' in data or not 'tags' in data:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
+        try:
+            if not data['images']:
+                return JsonResponse({'message':'IMAGE_PLZ'}, status=400)
+
+            image_list = [image_url for image_url in data['images']]
+
+        except TypeError:
+            return JsonResponse({'message':'IMAGES_TYPE_ERROR'}, status=400)
+
         created_post = Post.objects.create(
             content = data['content'],
             author  = user
         )
 
-        try:
-            if not data['images']:
-                return JsonResponse({'message':'IMAGE_PLZ'}, status=400)
-
-            for image in data['images']:
-                PostImage.objects.create(
-                    post      = created_post,
-                    image_url = image
-                )
-
-        except TypeError:
-            return JsonResponse({'message':'IMAGES_TYPE_ERROR'}, status=400)
+        for image in image_list:
+            PostImage.objects.create(
+                post      = created_post,
+                image_url = image
+            )
 
         try:
             if data['tags']:
