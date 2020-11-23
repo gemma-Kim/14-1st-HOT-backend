@@ -89,8 +89,9 @@ class FollowView(View):
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
+class UnFollowView(View):
     @login_decorator
-    def delete(self, request):
+    def post(self, request):
         try:
             data          = json.loads(request.body)
             user          = User.objects.get(id=request.user.id)
@@ -105,11 +106,3 @@ class FollowView(View):
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
-
-    @login_decorator
-    def get(self, request):
-        user       = User.objects.get(id=request.user.id)
-        follower   = Follow.objects.filter(followee_id=user.id).count()
-        following  = Follow.objects.filter(follower_id=user.id).count()
-
-        return JsonResponse({'follower':follower, 'following':following}, status=200)
