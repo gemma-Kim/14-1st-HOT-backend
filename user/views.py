@@ -73,11 +73,11 @@ class FollowView(View):
             data = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
 
-            if type(data['id']) == str:
+            if type(data['id']) != int:
                 return JsonResponse({'message':'TYPE_ERROR'}, status=400)
 
             if user.id == data['id']:
-                return JsonResponse({'message':'DUPLICATION_ID'}, status=400)
+                return JsonResponse({'message':'DUPLICATE_ID'}, status=400)
 
             if Follow.objects.filter(follower_id=user.id, followee_id=data['id']).exists():
                 return JsonResponse({'message':'INVALID_FOLLOW'}, status=400)
