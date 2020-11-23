@@ -44,12 +44,43 @@ class PostView(View):
                 image_url = image
             )
 
-        if data['tags']:
-            created_tag = Tag.objects.create(name = tag)
-            PostTag.objects.create(
-                tag  = created_tag,
-                post = created_post
+        if not data['tags']:
+            created_post = Post.objects.create(
+                content = data['content'],
+                author  = user
             )
+
+            for image in image_list:
+                PostImage.objects.create(
+                    post      = created_post,
+                    image_url = image
+                )
+
+            return JsonResponse({'message':'SUCCESS'}, status=201)
+
+
+        if data['tags']:
+            for tag in tags_list:
+                if not tag or tag.isspace():
+                    return JsonResponse({'message':'TAG_VALUE_ERROR'}, status=400)
+
+            created_post = Post.objects.create(
+                content = data['content'],
+                author  = user
+            )
+
+            for image in image_list:
+                PostImage.objects.create(
+                    post      = created_post,
+                    image_url = image
+                )
+
+            for tag in tags_list:
+                created_tag = Tag.objects.create(name = tag)
+                PostTag.objects.create(
+                    tag  = created_tag,
+                    post = created_post
+                )
 
         return JsonResponse({'message':'SUCCESS'}, status=201)
 
