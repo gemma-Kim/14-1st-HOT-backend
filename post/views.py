@@ -45,18 +45,11 @@ class PostView(View):
             )
 
         if data['tags']:
-            for tag in tag_list:
-                if not tag or tag.isspace():
-                    return JsonResponse({'message':'CHECK TAG VALUE'}, status=400)
-
-                created_tag = Tag.objects.create(name = tag)
-                PostTag.objects.create(
-                    tag  = created_tag,
-                    post = created_post
-                )
-
-            except TypeError:
-                return JsonResponse({'message':'TAGS_TYPE_ERROR'}, status=400)
+            created_tag = Tag.objects.create(name = tag)
+            PostTag.objects.create(
+                tag  = created_tag,
+                post = created_post
+            )
 
         return JsonResponse({'message':'SUCCESS'}, status=201)
 
