@@ -2,5 +2,5 @@ from django.urls import path
 from .views import CommentView
 
 urlpatterns = [
-    path('/comment', CommentView.as_view()),
+    path('<int:post_id>/comments', CommentView.as_view()),
 ]

@@ -10,10 +10,10 @@ from user.utils  import login_decorator
 
 class CommentView(View):
     @login_decorator
-    def post(self, request):
+    def post(self, request, post_id):
         user    = request.user
         data    = json.loads(request.body)
-        post_id = request.GET.get('post', None)
+        post_id = post_id
 
         if not post_id:
             return JsonResponse({'message': 'CHECK_QUERYSTRING'}, status=400)
