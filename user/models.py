@@ -27,7 +27,7 @@ class Follow(models.Model):
         db_table = 'follows'
 
 
-class ProductBookmark(models.Model):
+class ProductBookmark(TimeStampModel):
     user    = models.ForeignKey('User', on_delete=models.CASCADE)
     product = models.ForeignKey('product.Product', on_delete=models.CASCADE)
 
@@ -35,21 +35,21 @@ class ProductBookmark(models.Model):
         db_table = 'product_bookmarks'
 
 
-class PostBookmark(models.Model):
+class PostBookmark(TimeStampModel):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     post = models.ForeignKey('post.Post', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'post_bookmarks'
 
-class CollectionBookmark(models.Model):
+class CollectionBookmark(TimeStampModel):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     collection = models.ForeignKey('product.Collection', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'collection_bookmarks'
 
-class Like(models.Model):
+class Like(TimeStampModel):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     post = models.ForeignKey('post.Post', on_delete=models.CASCADE)
 

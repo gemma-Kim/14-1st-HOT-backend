@@ -2,6 +2,7 @@ import json
 
 from django.views import View
 from django.http  import JsonResponse
+from django.db.models import Q
 
 from user.models  import ProductBookmark
 from .models      import (
@@ -19,14 +20,29 @@ from .models      import (
 )
 
 
-
 class ProductListView(View):
 
-    #seller문제
     def get(self, request):
         try:
-            category = request.GET['menu_id']
-            if not Menu.objects.filter(id=category):
+# currently working on this code(will be updated later)
+#            menu = request.GET.get('menu', None)
+#            print(menu)
+#            category = request.GET.get('category', None)
+#            subcategory = request.GET.get('sub_category', None)
+#            products = Product.objects.filter(Q(menu_id=menu) | Q(category_id=category) | Q(sub_category_id=subcategory)).select_related('menu', 'category', 'sub_category', 'collection')
+#            context = [
+#                {
+#                    'menus':[menu for menu in products.first()menu.all()],
+#                    'category':products.first().category.name,
+#                    'sub_category':products.first().sub_category.name
+#                }
+#            ]
+#            return JsonResponse({'result': context}, status=200)
+#        except KeyError:
+#            return JsonResponse({},status=400)
+#----------------previous code goes here -------------------------------
+            menu_id = request.GET.get('menu', None)
+            if not Menu.objects.filter(id=menu_id):
                 return JsonResponse({'message': 'DoesNotExist'}, status=400)
             menu = Menu.objects.prefetch_related('category_set',
                                                  'category_set__subcategory_set',
@@ -37,7 +53,7 @@ class ProductListView(View):
                                                  'category_set__subcategory_set__collection_set',
                                                  'category_set__subcategory_set__collection_set__seller',
                                                  'category_set__subcategory_set__product_set__review_set'
-                                                 ).get(id=category)
+                                                 ).get(id=menu_id)
         except KeyError:
             return JsonResponse({'message': 'KeyError'}, status=400)
         context = [
