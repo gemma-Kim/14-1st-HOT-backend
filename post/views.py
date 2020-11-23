@@ -26,6 +26,13 @@ class PostView(View):
         except TypeError:
             return JsonResponse({'message':'IMAGES_TYPE_ERROR'}, status=400)
 
+        if data['tags']:
+            try:
+                tags_list = [tag for tag in data['tags']]
+
+            except TypeError:
+                return JsonResponse({'message':'TAGS_TYPE_ERROR'}, status=400)
+
         created_post = Post.objects.create(
             content = data['content'],
             author  = user
@@ -37,19 +44,22 @@ class PostView(View):
                 image_url = image
             )
 
-        try:
-            if data['tags']:
-                for tag in data['tags']:
-                    created_tag = Tag.objects.create(name = tag)
-                    PostTag.objects.create(
-                        tag  = created_tag,
-                        post = created_post
-                    )
+        if data['tags']:
+            for tag in tag_list:
+                if not tag or tag.isspace():
+                    return JsonResponse({'message':'CHECK TAG VALUE'}, status=400)
 
-            return JsonResponse({'message':'SUCCESS'}, status=200)
+                created_tag = Tag.objects.create(name = tag)
+                PostTag.objects.create(
+                    tag  = created_tag,
+                    post = created_post
+                )
 
-        except TypeError:
-            return JsonResponse({'message':'TAGS_TYPE_ERROR'}, status=400)
+            except TypeError:
+                return JsonResponse({'message':'TAGS_TYPE_ERROR'}, status=400)
+
+        return JsonResponse({'message':'SUCCESS'}, status=201)
+
 
     def get(self, request):
         posts = Post.objects.prefetch_related(
