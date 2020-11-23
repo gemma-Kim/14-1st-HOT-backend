@@ -183,8 +183,10 @@ class BookmarkView(View):
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
+
+class UnBookmarkView(View):
     @login_decorator
-    def delete(self, request):
+    def post(self, request):
         try:
             data = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
