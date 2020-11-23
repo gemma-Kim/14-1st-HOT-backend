@@ -1,11 +1,10 @@
 import json
 
 from django.views import View
-from django.http import JsonResponse
+from django.http  import JsonResponse
 
-
-
-from .models import (
+from user.models  import ProductBookmark
+from .models      import (
     Menu,
     Category,
     SubCategory,
@@ -15,7 +14,8 @@ from .models import (
     ProductDetail,
     ProductImage,
     Seller,
-    Share
+    Share,
+    Review
 )
 
 
@@ -24,15 +24,22 @@ class ProductListView(View):
 
     #seller문제
     def get(self, request):
-        data = json.loads(request.body)
-        menu = Menu.objects.prefetch_related('category_set',
-                                             'category_set__subcategory_set',
-                                             'category_set__subcategory_set__product_set',
-                                             'category_set__subcategory_set__product_set__productimage_set',
-                                             'category_set__subcategory_set__product_set__seller',
-                                             'category_set__subcategory_set__collection_set',
-                                             'category_set__subcategory_set__collection_set__seller'
-                                             ).get(id=data['menu_id'])
+        try:
+            category = request.GET['menu_id']
+            if not Menu.objects.filter(id=category):
+                return JsonResponse({'message': 'DoesNotExist'}, status=400)
+            menu = Menu.objects.prefetch_related('category_set',
+                                                 'category_set__subcategory_set',
+                                                 'category_set__subcategory_set__product_set',
+                                                 'category_set__subcategory_set__product_set__productbookmark_set',
+                                                 'category_set__subcategory_set__product_set__productimage_set',
+                                                 'category_set__subcategory_set__product_set__seller',
+                                                 'category_set__subcategory_set__collection_set',
+                                                 'category_set__subcategory_set__collection_set__seller',
+                                                 'category_set__subcategory_set__product_set__review_set'
+                                                 ).get(id=category)
+        except KeyError:
+            return JsonResponse({'message': 'KeyError'}, status=400)
         context = [
             {
                 'menu_id': menu.id,
@@ -49,8 +56,12 @@ class ProductListView(View):
                                     {
                                         'product_id': product.id,
                                         'product_name': product.name,
-                                        'product_images':[ image.product_image_url for image in product.productimage_set.all()],
-                                        'product_seller': product.seller.name
+                                        'product_images':[image.product_image_url for image in product.productimage_set.all()],
+                                        'product_seller': product.seller.name,
+                                        'number_of_product_bookmarks': product.productbookmark_set.count(),
+                                        'is_product_bookmarked': product.productbookmark_set.filter(user_id=1).exists(),
+                                        'reviews': product.review_set.count()
+                                        # need to add rates
                                     }
                                     for product in subcategory.product_set.all()
                                 ],
@@ -70,31 +81,39 @@ class ProductListView(View):
                 ]
             }
         ]
-
-
         return JsonResponse({'result': context}, status=200)
-#        products = Product.objects.select_related(
-#            'collection',
-#            'collection__sub_cateory',
-#            'collection__sub_cateory__category',
-#            'collection__sub_cateory__category__menu'
-#        ).prefetch_related('
-#        context = [
-#            {
-#                'menu_id':products[0].collection.sub_category.category.menu.id,
-#                'menu': products[0].collection.sub_category.category.menu.name,
-#                'category_id': products[0].collection.sub_category.category.id,
-#                'category': products[0].collection.sub_category.category.name,
-#                'sub_category_id': products[0].collection.sub_category.id,
-#                'sub_category': products[0].collection.sub_category.name,
-#                'collection_id': products[0].collection.id,
-#                'collection': products[0].collection.name,
-#                'product_id': products[0].id,
-#                'proudct': products[0].name
-#                'image_url': product
-#
-#
-#                'c': product.id,
-#                'post_name': product.name,
-#                'colelction': product.collection.name ,
-#                '
+
+
+class ProductDetailView(View):
+    def get(self,request, product_id):
+        try:
+            if not Product.objects.filter(id=product_id).exists():
+                return JsonResponse({'message': 'ProductNotFound'}, status=400)
+            products = Product.objects.prefetch_related('review_set',
+                                                        'share_set',
+                                                        'productbookmark_set',
+                                                        'productdetail_set',
+                                                        'productdetail_set__size',
+                                                        'productdetail_set__color'
+                                                        ).get(id=product_id)
+        except KeyError:
+            return JsonResponse({'message':'KeyError'}, status=400)
+        context = [
+            {
+                'product_id': product_id,
+                'product_name': products.name,
+                'number_of_shares': products.share_set.count(),
+                'number_of_reviews': products.review_set.count(),
+                'number_of_product_bookmarks': products.productbookmark_set.count(),
+                'details': [
+                    {
+                        'product_detail_id': detail.id,
+                        'color': [detail.color.name],
+                        'size': [detail.size.name],
+                        'price': detail.price
+                    }
+                    for detail in products.productdetail_set.all()
+                ]
+            }
+        ]
+        return JsonResponse({'result':context}, status=200)
