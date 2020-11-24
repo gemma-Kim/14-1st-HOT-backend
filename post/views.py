@@ -6,6 +6,7 @@ from django.db.models import Q
 
 from post.models import Post, PostImage, ProductInPost, Comment, Tag, PostTag
 from user.models import User, Like, PostBookmark
+from user.utils  import login_decorator
 
 class PostView(View):
     def get(self, request):
@@ -59,7 +60,7 @@ class PostView(View):
 
         return JsonResponse({'result' : results}, status = 200)
 
-      
+
 class PostDetailView(View):
     def get(self, request, post_id):
         try:
@@ -131,3 +132,32 @@ class PostDetailView(View):
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
+
+
+class CommentView(View):
+    @login_decorator
+    def post(self, request, post_id):
+        user      = request.user
+        data      = json.loads(request.body)
+        parent_id = data.get('parent')
+
+        if not 'content' in data:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+        if not data['content'] or data['content'].isspace():
+            return JsonResponse({'message': 'CONTENT_NULL'}, status=400)
+
+        try:
+            post = Post.objects.get(id=post_id)
+
+            Comment.objects.create(
+                content = data['content'],
+                post    = post,
+                author  = user,
+                parent_id = parent_id
+            )
+
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
