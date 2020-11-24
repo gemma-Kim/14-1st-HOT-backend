@@ -16,8 +16,9 @@ class Cart(models.Model):
 
 
 class Order(TimeStampModel):
-    uuid       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user       = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
+    uuid   = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user   = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
+    status = models.ForeignKey('Status')
 
     class Meta:
         db_table = 'orders'

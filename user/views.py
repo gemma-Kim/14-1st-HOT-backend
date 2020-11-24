@@ -157,7 +157,7 @@ class BookmarkView(View):
             data = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
 
-            if data['post_id']:
+            if 'post_id' in data:
                 if PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
                     return JsonResponse({'messsage':'INVALID_BOOKMARK'}, status=400)
 
@@ -165,7 +165,7 @@ class BookmarkView(View):
 
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            elif data['product_id']:
+            elif 'product_id' in data:
                 if ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
                     return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
 
@@ -173,7 +173,7 @@ class BookmarkView(View):
 
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            if CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id'].exists():
+            if CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).exists():
                 return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
 
             CollectionBookmark.objects.create(user_id=user.id, collection_id=data['collection_id'])
@@ -200,14 +200,14 @@ class UnBookmarkView(View):
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
             elif data['product_id']:
-                elif not ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
+                if not ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
                     return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
 
                 ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).delete()
 
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            if not CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id'].exists():
+            if not CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).exists():
                 return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
 
             CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).delete()
