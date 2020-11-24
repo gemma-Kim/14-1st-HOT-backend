@@ -150,7 +150,7 @@ class CommentView(View):
         try:
             post = Post.objects.get(id=post_id)
 
-            created_comment = Comment.objects.create(
+            Comment.objects.create(
                 content = data['content'],
                 post    = post,
                 author  = user,
