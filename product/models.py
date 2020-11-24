@@ -41,20 +41,20 @@ class Collection(models.Model):
 
 
 class AdditionalProduct(models.Model):
-    main_product = models.ForeignKey('ProductDetail', on_delete=models.CASCADE, related_name='main')
-    sub_product  = models.ForeignKey('ProductDetail', on_delete=models.CASCADE, related_name='sub')
+    main_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='main')
+    sub_product  = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='sub')
 
     class Meta:
         db_table = 'additional_products'
 
 
-class Product(models.Model):
+class Product(TimeStampModel):
     name                = models.CharField(max_length=200)
     menu                = models.ForeignKey('Menu', on_delete=models.CASCADE)
     category            = models.ForeignKey('Category', on_delete=models.CASCADE)
     sub_category        = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
     collection          = models.ForeignKey('Collection', on_delete=models.SET_NULL, null=True)
-    additional_products = models.ManyToManyField('self', through='AdditionalProduct')
+    additional_products = models.ManyToManyField('self', through='AdditionalProduct', symmetrical=False)
     color               = models.ManyToManyField('Color', through ='ColorSet')
     seller              = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
 

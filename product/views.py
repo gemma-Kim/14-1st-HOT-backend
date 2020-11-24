@@ -20,9 +20,7 @@ from .models          import (
 )
 
 
-#filter
 class ProductListView(View):
-    # how to get collection list out of Product
     def get(self, request):
         try:
             menu        = request.GET.get('menu', None)
@@ -88,18 +86,18 @@ class ProductDetailView(View):
         try:
             if not Product.objects.filter(id=product_id).exists():
                 return JsonResponse({'mesage': 'ProductNotFound'}, status=400)
-            products = Product.objects.select_related('seller', 'menu', 'category', 'sub_category').prefetch_related('share_set', 'review_set', 'productbookmark_set', 'productdetail_set', 'productdetail_set__additionalproduct_set', 'productimage_set').get(id=product_id)
+            products = Product.objects.select_related('seller', 'menu', 'category').prefetch_related('additional_products','share_set', 'review_set', 'productbookmark_set', 'productdetail_set', 'productimage_set').get(id=product_id)
             context=[
                 {
                     'menu'                     : products.menu.name,
                     'category'                 : products.category.name,
                     'subcategory'              : products.sub_category.name,
                     'collection'               : products.collection.name,
-#                    'AdditionalProduct'        : products.
                     'product_id'               : products.id,
                     'product_name'             : products.name,
                     'product_seller'           : products.seller.name,
                     'product_image_url'        : [image.product_image_url for image in products.productimage_set.all()],
+                    'additional_products'      : [product.name for product in products.additional_products.all()],
                     'number_of_reviews'        : products.review_set.count(),
                     'product_rates'            : [(review.durability + review.afforability + review.design + review.delivery)/4
                                                   for review in products.review_set.all()],
