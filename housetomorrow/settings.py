@@ -149,3 +149,7 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
+
+FAKER_LOCALE = None
+FAKER_PROVIDERS = None
+

@@ -40,7 +40,7 @@ class RegisterView(View):
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
-class SignInView(View):
+class LogInView(View):
     def post(self, request):
         try:
             signin_data      = json.loads(request.body)
@@ -64,44 +64,6 @@ class SignInView(View):
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -191,7 +153,7 @@ class UnBookmarkView(View):
             data = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
 
-            if data['post_id']:
+            if 'post_id' in data:
                 if not PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
                     return JsonResponse({'messsage':'INVALID_DELETE'}, status=400)
 
@@ -199,7 +161,7 @@ class UnBookmarkView(View):
 
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            elif data['product_id']:
+            elif 'product_id' in data:
                 if not ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
                     return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
 
