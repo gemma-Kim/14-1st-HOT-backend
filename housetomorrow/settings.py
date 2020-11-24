@@ -181,3 +181,6 @@ LOGGING = {
         },
     },
 }
+FAKER_LOCALE = None
+FAKER_PROVIDERS = None
+
