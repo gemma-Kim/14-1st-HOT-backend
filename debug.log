@@ -22,3 +22,11 @@
 2020-11-23 14:12:16,671 DEBUG (0.000) SELECT `users`.`id`, `users`.`created_at`, `users`.`updated_at`, `users`.`username`, `users`.`password`, `users`.`email`, `users`.`profile_image_url` FROM `users` WHERE `users`.`email` = '' LIMIT 21; args=('',)
 2020-11-23 14:12:26,355 DEBUG (0.000) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None
 2020-11-23 14:12:26,356 DEBUG (0.000) SELECT `users`.`id`, `users`.`created_at`, `users`.`updated_at`, `users`.`username`, `users`.`password`, `users`.`email`, `users`.`profile_image_url` FROM `users` WHERE `users`.`email` = 'reo@nate.com' LIMIT 21; args=('reo@nate.com',)
+2020-11-24 13:56:24,820 DEBUG (0.000) SELECT @@SQL_AUTO_IS_NULL; args=None
+2020-11-24 13:56:24,820 DEBUG (0.000) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None
+2020-11-24 13:56:24,822 DEBUG (0.001) SHOW FULL TABLES; args=None
+2020-11-24 13:56:24,825 DEBUG (0.000) SELECT `django_migrations`.`id`, `django_migrations`.`app`, `django_migrations`.`name`, `django_migrations`.`applied` FROM `django_migrations`; args=()
+2020-11-24 13:57:36,031 DEBUG (0.000) SELECT @@SQL_AUTO_IS_NULL; args=None
+2020-11-24 13:57:36,031 DEBUG (0.000) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None
+2020-11-24 13:57:36,032 DEBUG (0.001) SHOW FULL TABLES; args=None
+2020-11-24 13:57:36,036 DEBUG (0.000) SELECT `django_migrations`.`id`, `django_migrations`.`app`, `django_migrations`.`name`, `django_migrations`.`applied` FROM `django_migrations`; args=()

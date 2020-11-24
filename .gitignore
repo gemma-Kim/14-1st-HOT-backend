@@ -9,3 +9,5 @@ __pycache__/
 my_db.py
 
 my_fake.py
+
+debug.log
