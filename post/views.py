@@ -137,9 +137,9 @@ class PostDetailView(View):
 class CommentView(View):
     @login_decorator
     def post(self, request, post_id):
-        user    = request.user
-        data    = json.loads(request.body)
-        post_id = post_id
+        user      = request.user
+        data      = json.loads(request.body)
+        parent_id = data.get('parent')
 
         if not 'content' in data:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
@@ -153,21 +153,11 @@ class CommentView(View):
             created_comment = Comment.objects.create(
                 content = data['content'],
                 post    = post,
-                author  = user
+                author  = user,
+                parent_id = parent_id
             )
+
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
-
-
-        if 'parent' in data:
-            try:
-                comment = Comment.objects.get(id=data['parent'])
-
-                created_comment.parent = comment
-                created_comment.save()
-
-            except Comment.DoesNotExist:
-                return JsonResponse({'message': 'INVALID_COMMENT'}, status=400)
-
-        return JsonResponse({'message': 'SUCCESS'}, status=200)
