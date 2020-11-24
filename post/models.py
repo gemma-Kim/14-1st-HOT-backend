@@ -55,3 +55,6 @@ class Tag(models.Model):
 class PostTag(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     tag  = models.ForeignKey('Tag', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'post_tags'

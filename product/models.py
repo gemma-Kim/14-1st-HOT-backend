@@ -41,8 +41,8 @@ class Collection(models.Model):
 
 
 class AdditionalProduct(models.Model):
-    main_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='main')
-    sub_product  = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='sub')
+    main_product = models.ForeignKey('ProductDetail', on_delete=models.CASCADE, related_name='main')
+    sub_product  = models.ForeignKey('ProductDetail', on_delete=models.CASCADE, related_name='sub')
 
     class Meta:
         db_table = 'additional_products'
@@ -50,10 +50,13 @@ class AdditionalProduct(models.Model):
 
 class Product(models.Model):
     name                = models.CharField(max_length=200)
-    collection          = models.ForeignKey('Collection', on_delete=models.SET_NULL, null=True)
-    additional_products = models.ManyToManyField('self', through ='AdditionalProduct')
-    seller              = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
+    menu                = models.ForeignKey('Menu', on_delete=models.CASCADE)
+    category            = models.ForeignKey('Category', on_delete=models.CASCADE)
     sub_category        = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
+    collection          = models.ForeignKey('Collection', on_delete=models.SET_NULL, null=True)
+    additional_products = models.ManyToManyField('self', through='AdditionalProduct')
+    color               = models.ManyToManyField('Color', through ='ColorSet')
+    seller              = models.ForeignKey('Seller', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'products'
@@ -62,13 +65,31 @@ class Product(models.Model):
         return self.name
 
 
-class ProductDetail(models.Model):
-    color   = models.CharField(max_length=200)
-    option  = models.JSONField("options")
+class Color(models.Model):
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'colors'
+
+class ColorSet(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    color   = models.ForeignKey('Color', on_delete=models.CASCADE)
+
+class Size(models.Model):
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = 'sizes'
+
+
+class ProductDetail(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    size    = models.ForeignKey('Size', on_delete=models.CASCADE, null=True)
+    price   = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         db_table = 'product_details'
+
 
 
 class ProductImage(models.Model):
@@ -99,10 +120,10 @@ class Review(TimeStampModel):
     content      = models.TextField()
     review_image = models.URLField(max_length=200)
     product      = models.ForeignKey('Product', on_delete=models.CASCADE)
-    durability   = models.DecimalField(max_digits=1,decimal_places=1)
-    afforability = models.DecimalField(max_digits=1,decimal_places=1)
-    design       = models.DecimalField(max_digits=1,decimal_places=1)
-    delivery     = models.DecimalField(max_digits=1,decimal_places=1)
+    durability   = models.DecimalField(max_digits=2,decimal_places=1)
+    afforability = models.DecimalField(max_digits=2,decimal_places=1)
+    design       = models.DecimalField(max_digits=2,decimal_places=1)
+    delivery     = models.DecimalField(max_digits=2,decimal_places=1)
 
     class Meta:
         db_table = 'reviews'
