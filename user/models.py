@@ -7,7 +7,7 @@ class User(TimeStampModel):
     username          = models.CharField(max_length=200)
     password          = models.CharField(max_length=1000)
     email             = models.EmailField()
-    profile_image_url = models.URLField(max_length=1000, null=True)
+    profile_image_url = models.URLField(max_length=1000, null=True, default='https://cdn.pixabay.com/photo/2019/08/11/18/59/icon-4399701_960_720.png')
     follow            = models.ManyToManyField('self', through='Follow',symmetrical=False)
     product_bookmark  = models.ManyToManyField('product.Product', through='ProductBookmark')
     post_bookmark     = models.ManyToManyField('post.Post', through='PostBookmark')
