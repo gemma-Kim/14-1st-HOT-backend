@@ -23,25 +23,54 @@ from .models          import (
 class ProductListView(View):
     def get(self, request):
         try:
-            menu        = request.GET.get('menu', None)
-            category    = request.GET.get('category', None)
-            subcategory = request.GET.get('sub_category', None)
-            products    = Product.objects.filter(Q(menu_id=menu) | Q(category_id=category) | Q(sub_category_id=subcategory)).select_related('menu', 'category', 'sub_category', 'collection', 'seller').prefetch_related('review_set', 'productbookmark_set')
+#            user_id = request.user.id
+            user_id = 1
+
+            menu_id         = request.GET.get('menu', None)
+            category_id     = request.GET.get('cat', None)
+            subcategory_id  = request.GET.get('sub', None)
+
+            order   = request.GET.get('order', '0')
+            search  = request.GET.get('search', None)
+
+            condition = Q()
+            if search:
+                query &= Q(name__contains=search) | Q(seller__name__contains=search)
+
+            sort_set = {
+                '0' : 'id',
+                '1' : '-id'
+            }
+
+
+#
+#            sorting = [
+#                {
+#                    'id' : 0,
+#                    'name': '신상품'
+#                },
+#                {
+#                    'id' : 1,
+#                    'name': '
+
+            products = Product.objects.filter(Q(menu_id=menu_id) | Q(category_id=category_id) | Q(sub_category_id=subcategory_id)).select_related('menu', 'category', 'sub_category', 'collection', 'seller').prefetch_related('review_set', 'productbookmark_set').order_by(sort_set[order])
+
 
             context = [
                 {
                     'product_id'               : product.id,
-                    'collection'               : str(product.collection),
                     'product'                  : product.name,
+                    'collection'               : str(product.collection),
                     'product_seller'           : product.seller.name,
                     'number_of_reviews'        : product.review_set.count(),
                     'rates'                    : [(review.durability + review.afforability + review.design + review.delivery)/4
                                                   for review in product.review_set.all()],
                     'number_of_post_bookmarks' : product.productbookmark_set.count(),
-                    'is_bookmarked'            : product.productbookmark_set.filter(user_id=1).exists()
+                    'is_bookmarked'            : product.productbookmark_set.filter(user_id=user_id).exists()
                 }
-                for product in products
+                for product in products.filter(condition)
             ]
+
             return JsonResponse({'result': context}, status=200)
         except KeyError:
             return JsonResponse({},status=400)
@@ -52,7 +81,20 @@ class CategoryListView(View):
         try:
             menu_id = request.GET.get('menu', None)
             if not Menu.objects.filter(id=menu_id):
-                return JsonResponse({'message': 'DoesNotExist'}, status=400)
+
+                menus = Menu.objects.prefetch_related('category_set','category_set__subcategory_set')
+                context = [
+                    {
+                        'menu_id': menu.id,
+                        'menu_name': menu.name
+                    }
+                    for menu in menus
+                ]
+
+                return JsonResponse({'result': context}, status=200)
+
+
+
             menu = Menu.objects.prefetch_related('category_set',
                                                  'category_set__subcategory_set',
                                                  ).get(id=menu_id)
