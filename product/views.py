@@ -42,17 +42,6 @@ class ProductListView(View):
                 '1' : '-id'
             }
 
-
-#
-#            sorting = [
-#                {
-#                    'id' : 0,
-#                    'name': '신상품'
-#                },
-#                {
-#                    'id' : 1,
-#                    'name': '
-
             products = Product.objects.filter(Q(menu_id=menu_id) | Q(category_id=category_id) | Q(sub_category_id=subcategory_id)).select_related('menu', 'category', 'sub_category', 'collection', 'seller').prefetch_related('review_set', 'productbookmark_set').order_by(sort_set[order])
 
 
@@ -75,12 +64,12 @@ class ProductListView(View):
         except KeyError:
             return JsonResponse({},status=400)
 
-
+filte
 class CategoryListView(View):
     def get(self, request):
         try:
             menu_id = request.GET.get('menu', None)
-            if not Menu.objects.filter(id=menu_id):
+            if not menu_id:
 
                 menus = Menu.objects.prefetch_related('category_set','category_set__subcategory_set')
                 context = [
@@ -90,37 +79,34 @@ class CategoryListView(View):
                     }
                     for menu in menus
                 ]
-
                 return JsonResponse({'result': context}, status=200)
-
-
+            print(menu_id, '======================')
 
             menu = Menu.objects.prefetch_related('category_set',
-                                                 'category_set__subcategory_set',
+                                                 'category_set__subcategory_set'
                                                  ).get(id=menu_id)
-        except KeyError:
-            return JsonResponse({'message': 'KeyError'}, status=400)
-        context = [
-            {
-                'menu_id'   : menu.id,
-                'menu_name' : menu.name,
-                'categories': [
-                    {
-                        'category_id'   : category.id,
-                        'category_name' : category.name,
-                        'sub_categories': [
-                            {
-                                'sub_category_id'  : subcategory.id,
-                                'sub_category_name': subcategory.name,
-                            }
-                        ]
-                    }
-                    for subcategory in category.subcategory_set.all()
-                ]
+
+            context = {
+                    'menu_id'   : menu.id,
+                    'menu_name' : menu.name,
+                    'categories': [
+                        {
+                            'category_id': category.id,
+                            'category_name':category.name,
+                            'subcategories': [
+                                {
+                                    'subcategory_id': subcategory.id,
+                                    'subcategory_name': subcategory.name
+                                }
+                                for subcategory in category.subcategory_set.all()
+                            ]
+                        }
+                        for category in menu.category_set.all()
+                    ]
             }
-            for category in menu.category_set.all()
-        ]
-        return JsonResponse({'result': context}, status=200)
+            return JsonResponse({'result': context}, status=200)
+        except KeyError:
+            return JsonResponse({}, status=400)
 
 
 class ProductDetailView(View):
