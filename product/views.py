@@ -64,7 +64,6 @@ class ProductListView(View):
         except KeyError:
             return JsonResponse({},status=400)
 
-filte
 class CategoryListView(View):
     def get(self, request):
         try:
