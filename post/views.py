@@ -133,8 +133,8 @@ class PostDetailView(View):
                                 'image_url'    : linkedproduct.product.productimage_set.first().product_image_url,
                                 'product_id'   : linkedproduct.product_id,
                                 'product_name' : linkedproduct.product.name,
-                                'left': linkedproduct.left_position,
-                                'top': linkedproduct.top_position
+                                'left'         : linkedproduct.left_position,
+                                'top'          : linkedproduct.top_position
                             }
                             for linkedproduct in post.productinpost_set.all()
                         ]
