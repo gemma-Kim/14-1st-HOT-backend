@@ -114,29 +114,28 @@ class BookmarkView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            user = User.objects.get(id=request.user.id)
 
             if 'post_id' in data:
-                if PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
+                if PostBookmark.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
                     return JsonResponse({'messsage':'INVALID_BOOKMARK'}, status=400)
-                print('a')
-                PostBookmark.objects.create(user_id=user.id, post_id=data['post_id'])
-                print('b')
+
+                PostBookmark.objects.create(user_id=request.user.id, post_id=data['post_id'])
+
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            elif 'product_id' in data:
-                if ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
+            if 'product_id' in data:
+                if ProductBookmark.objects.filter(user_id=request.user.id, product_id=data['product_id']).exists():
                     return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
-                print('c')
-                ProductBookmark.objects.create(user_id=user.id, product_id=data['product_id'])
-                print('d')
+
+                ProductBookmark.objects.create(user_id=request.user.id, product_id=data['product_id'])
+
                 return JsonResponse({'message':'SUCCESS'}, status=200)
 
-            if CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).exists():
+            if CollectionBookmark.objects.filter(user_id=request.user.id, collection_id=data['collection_id']).exists():
                 return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
-            print('e')
-            CollectionBookmark.objects.create(user_id=user.id, collection_id=data['collection_id'])
-            print('f')
+ 
+            CollectionBookmark.objects.create(user_id=request.user.id, collection_id=data['collection_id'])
+
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
         except KeyError:
@@ -148,28 +147,27 @@ class UnBookmarkView(View):
      def post(self, request):
          try:
              data = json.loads(request.body)
-             user = User.objects.get(id=request.user.id)
 
              if 'post_id' in data:
-                 if not PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).exists():
+                 if not PostBookmark.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
                      return JsonResponse({'messsage':'INVALID_DELETE'}, status=400)
 
-                 PostBookmark.objects.filter(user_id=user.id, post_id=data['post_id']).delete()
+                 PostBookmark.objects.filter(user_id=request.user.id, post_id=data['post_id']).delete()
 
                  return JsonResponse({'message':'SUCCESS'}, status=200)
 
-             elif 'product_id' in data:
-                 if not ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).exists():
+             if 'product_id' in data:
+                 if not ProductBookmark.objects.filter(user_id=request.user.id, product_id=data['product_id']).exists():
                      return JsonResponse({'messgae':'INVALID_BOOKMARK'}, status=400)
 
-                 ProductBookmark.objects.filter(user_id=user.id, product_id=data['product_id']).delete()
+                 ProductBookmark.objects.filter(user_id=request.user.id, product_id=data['product_id']).delete()
 
                  return JsonResponse({'message':'SUCCESS'}, status=200)
 
-             if not CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).exists():
+             if not CollectionBookmark.objects.filter(user_id=request.user.id, collection_id=data['collection_id']).exists():
                  return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
 
-             CollectionBookmark.objects.filter(user_id=user.id, collection_id=data['collection_id']).delete()
+             CollectionBookmark.objects.filter(user_id=request.user.id, collection_id=data['collection_id']).delete()
 
              return JsonResponse({'message':'SUCCESS'}, status=200)
 
@@ -182,12 +180,11 @@ class LikeView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            user = User.objects.get(id=request.user.id)
 
-            if Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+            if Like.objects.filter(user_id=request.user.id, post_id=data['id']).exists():
                 return JsonResponse({'message':'INVALID_LIKE'}, status=400)
 
-            Like.objects.create(user_id=user.id, post_id=data['id'])
+            Like.objects.create(user_id=request.user.id, post_id=data['id'])
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
