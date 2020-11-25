@@ -4,21 +4,30 @@ from django.db import models
 from post.models import TimeStampModel
 
 
-class Cart(TimeStampModel):
+class Cart(models.Model):
     product_detail  = models.ForeignKey('product.ProductDetail', on_delete=models.CASCADE)
+    user            = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
     order           = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True)
-    shipment        = models.CharField(max_length=100)
-    tracking_number = models.CharField(max_length=200)
-    seller          = models.ForeignKey('product.Seller', on_delete=models.SET_NULL, null=True)
+    tracking_number = models.CharField(max_length=200, null=True)
+    shipment        = models.CharField(max_length=30, default='쿠팜')
+    quantity        = models.CharField(max_length=1000)
+    cartbox         = models.ForeignKey('CartBox', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'carts'
 
 
+class CartBox(models.Model):
+    user    = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    product = models.ForeignKey('product.Product', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'cart_boxs'
+
+
 class Order(TimeStampModel):
     uuid   = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user   = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
-    status = models.ForeignKey('Status', on_delete=models.CASCADE)
+    status = models.ForeignKey('Status', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'orders'
