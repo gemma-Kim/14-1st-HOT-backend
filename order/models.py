@@ -12,6 +12,7 @@ class Cart(models.Model):
     shipment        = models.CharField(max_length=30, default='쿠팜')
     quantity        = models.CharField(max_length=1000)
     cartbox         = models.ForeignKey('CartBox', on_delete=models.CASCADE)
+    color           = models.ForeignKey('product.Color', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'carts'
