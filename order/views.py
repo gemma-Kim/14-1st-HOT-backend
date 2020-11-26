@@ -36,7 +36,30 @@ class AddItemView(View):
 class DisplayCartView(View):
     @login_decorator
     def get(self, request):
-        carts = Cart.objects.filter(user_id=request.user.id)
-        for cart in carts:
-            if 
-        return JsonResponse({'message':'SUCCESS', 'result': context}, status=200)
+        try:
+            carts           = Cart.objects.filter(user_id=request.user.id)
+            product_details = list(set([cart.product_detail_id for cart in carts]))
+            result          = []
+
+            for cart in carts:
+                if cart.product_detail_id in product_details:
+                    result.append({
+                        "product_id"   : cart.product_id,
+                        "product_name" : Product.objects.get(id=cart.product_id).name,
+                        "product_image": ProductImage.objects.get(product_id=cart.product_id).image_url,
+                        "options"      : [
+                            {
+                                "color": Color.objects.get(id=cart.color_id).name,
+                                "size" : ProductDetail.objects.get(id=cart.product_detail_id).size,
+                                "count": cart.quantity
+                            }
+                            for cart in carts
+                        ]
+                    })
+
+                    product_details.remove(cart.product_detail_id)
+
+            return JsonResponse({'message':'SUCCESS', 'context': result}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
