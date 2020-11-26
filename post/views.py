@@ -153,7 +153,7 @@ class PostDetailView(View):
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
 
-        if not user.id == post.user_id:
+        if user.id != post.user_id:
             return JsonResponse({'message': 'INVALID_USER'}, status=403)
 
         post.delete()
