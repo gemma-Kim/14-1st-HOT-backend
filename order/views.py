@@ -13,77 +13,28 @@ class AddItemView(View):
     @login_decorator
     def post(self, request):
         try:
-            datas = json.loads(request.body)
-
-#            for data in datas:
-#                if 'label' in data:
-#                    product_detail_id = ProductDetail.objects.get(
-#                                            product_id = data['product_id'],
-#                                            size_id    = Size.objects.get(name=data['label']).id,
-#                                            price      = data['value']
-#                                        ).id
-#
-#                    Cart.objects.create(
-#                        product_detail_id = product_detail_id,
-#                        user_id           = request.user.id,
-#                        quantity          = data['count'],
-#                        cartbox_id        = cartbox_id,
-#                        color_id          = ColorSet.objects.get(product_id=data['product_id']).color_id
-#                    )
-#
-#                else:
-#                    product_detail_id = ProductDetail.objects.get(
-#                                            product_id = data['product_id'],
-#                                            size_id    = None,
-#                                            price      = data['value']
-#                                        ).id
-#
-#                    Cart.objects.create(
-#                        product_detail_id = product_detail_id,
-#                        user_id           = request.user.id,
-#                        quantity          = data['count'],
-#                        cartbox_id        = cartbox_id,
-#                        color_id          = ColorSet.objects.get(product_id=data['product_id']).color_id
-#                    )
-#
-#            return JsonResponse({'message':'SUCCESS'}, status=200)
-           # product_name, seller, quantity, menu, subcategory 무조건 받음
-           # color, additional_products 있으면 받음
-            for data in datas:
+            data = json.loads(request.body)
+            for d in data:
                 product = Product.objects.get(
-                    name   = data['product_name'], 
-                    menu   = data['product_menu'],
-                    seller = data['seller'],
-                    color  = color_id
+                    id        = d['product_id'],
+                    seller_id = Seller.objects.get(name=d['seller']).id
                 )
 
-                size      = data.get('size', None)
-                color_id  = Color.objects.get(name=data['color'])
-                size_id   = Size.objects.get(name=data['size']).id
-                detail_id = ProductDetail.objects.get(size_id=size_id, price=data['value'], product_id=product.id).id
+                size      = d.get('label', None)
+                size_id   = Size.objects.get(name=d['label']).id
+                color_id  = Color.objects.get(name=d['color']).id
+                detail_id = ProductDetail.objects.get(size_id=size_id, price=d['value'], product_id=product.id).id
 
-                Cart.objects.create(product_detail_id=detail_id, user_id=request.user.id, quantity=data['count'], color_id=color_id)
+                Cart.objects.create(product_detail_id=detail_id, user_id=request.user.id, quantity=d['count'], color_id=color_id)
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
-#class DisplayCartView(View):
-#    @login_decorator
-#    def get(self, request):
-#        context = [
-#            {
-#                'cartbox_id'   : cartbox.id,
-#                'product_image': cartbox.product.productimage_set.first().product_image_url,
-#                'options':[
-#                    {
-#                        'color': Color.objects.get(id=cart.color_id).name,
-#                        'size' : Size.objects.get(id=cart.product_detail.size_id).id,
-#                        'count': cart.quantity,
-#                        'value': cart.product_detail.price
-#                    }  for cart in Cart.objects.filter(user_id=request.user.id).select_related('product_detail')
-#                ]
-#            }   for cartbox in CartBox.objects.filter(user_id=request.user.id).select_related('product').prefetch_related('cart_set')
-#        ]
-#
-#        return JsonResponse({'message':'SUCCESS', 'context': context}, status=200)
+class DisplayCartView(View):
+    @login_decorator
+    def get(self, request):
+        product_detail, color
+        return JsonResponse({'message':'SUCCESS', 'result': context}, status=200)
