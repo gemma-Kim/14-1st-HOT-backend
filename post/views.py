@@ -245,6 +245,9 @@ class CommentModifyView(View):
         except Comment.DoesNotExist:
             return JsonResponse({'message': 'INVALID_COMMENTS'}, status=400)
 
+        if post_id != comment.post_id:
+            return JsonResponse({'message': 'POST_ID_DOES_NOT_MATCH'}, status=400) 
+
         if user.id != comment.user_id:
             return JsonResponse({'message': 'INVALID_USER'}, status=403)
 
