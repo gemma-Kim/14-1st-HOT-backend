@@ -36,5 +36,7 @@ class AddItemView(View):
 class DisplayCartView(View):
     @login_decorator
     def get(self, request):
-        product_detail, color
+        carts = Cart.objects.filter(user_id=request.user.id)
+        for cart in carts:
+            if 
         return JsonResponse({'message':'SUCCESS', 'result': context}, status=200)
