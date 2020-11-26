@@ -181,27 +181,27 @@ class LikeView(View):
         try:
             data = json.loads(request.body)
 
-            if Like.objects.filter(user_id=request.user.id, post_id=data['id']).exists():
+            if Like.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
                 return JsonResponse({'message':'INVALID_LIKE'}, status=400)
 
-            Like.objects.create(user_id=request.user.id, post_id=data['id'])
+            Like.objects.create(user_id=request.user.id, post_id=data['post_id'])
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
         except KeyError:
             return JsonResponse({'message':"KEY_ERROR"}, status=400)
 
-    @login_decorator
-    def delete(self, request):
+
+class UnLikeView(View):
+    def post(self, request):
         try:
             data = json.loads(request.body)
-            user = User.objects.get(id=request.user.id)
 
-            if not Like.objects.filter(user_id=user.id, post_id=data['id']).exists():
+            if not Like.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
 
                 return JsonResponse({'message':'INVALID_DELETE'}, status=400)
 
-            Like.objects.filter(user_id=user.id, post_id=data['id']).delete()
+            Like.objects.filter(user_id=user.id, post_id=data['post_id']).delete()
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
