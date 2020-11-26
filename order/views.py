@@ -4,7 +4,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from .models     import Cart, Order
-from product.models import Product, ProductDetail, Seller, Size, Color
+from product.models import Product, ProductDetail, ProductImage, Seller, Size, Color
 from user.models import User
 from user.utils  import login_decorator
 
@@ -25,7 +25,7 @@ class AddItemView(View):
                 color_id  = Color.objects.get(name=d['color']).id
                 detail_id = ProductDetail.objects.get(size_id=size_id, price=d['value'], product_id=product.id).id
 
-                Cart.objects.create(product_detail_id=detail_id, user_id=request.user.id, quantity=d['count'], color_id=color_id)
+                Cart.objects.create(product_id=product.id, size_id=size_id, user_id=request.user.id, quantity=d['count'], color_id=color_id)
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
@@ -37,27 +37,28 @@ class DisplayCartView(View):
     @login_decorator
     def get(self, request):
         try:
-            carts           = Cart.objects.filter(user_id=request.user.id)
-            product_details = list(set([cart.product_detail_id for cart in carts]))
-            result          = []
+            carts = Cart.objects.filter(user_id=request.user.id)
+            product_ids = list(set([cart.product_id for cart in carts]))
+            product     = Product.objects.prefetch_related('productimage_set')
+            result      = []
 
-            for cart in carts:
-                if cart.product_detail_id in product_details:
-                    result.append({
-                        "product_id"   : cart.product_id,
-                        "product_name" : Product.objects.get(id=cart.product_id).name,
-                        "product_image": ProductImage.objects.get(product_id=cart.product_id).image_url,
-                        "options"      : [
-                            {
-                                "color": Color.objects.get(id=cart.color_id).name,
-                                "size" : ProductDetail.objects.get(id=cart.product_detail_id).size,
-                                "count": cart.quantity
-                            }
+            for product_id in product_ids:
+                carts = Cart.objects.filter(user_id=request.user.id, product_id=product_id)
+
+                result.append({
+                    "product_id"   : product_id,
+                    "product_name" : Product.objects.get(id=product_id).name,
+                    "product_image": product.get(id=product_id).productimage_set.first().product_image_url,
+                    "options"      : [
+                        {
+                            "color": Color.objects.get(id=cart.color_id).name,
+                            "size" : Size.objects.get(id=cart.size_id).name,
+                            "count": cart.quantity,
+                            "price": ProductDetail.objects.get(product_id=product_id, size_id=cart.size_id).price
+                        }
                             for cart in carts
-                        ]
+                    ]
                     })
-
-                    product_details.remove(cart.product_detail_id)
 
             return JsonResponse({'message':'SUCCESS', 'context': result}, status=200)
 
