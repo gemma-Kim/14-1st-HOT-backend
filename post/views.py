@@ -164,7 +164,7 @@ class CommentView(View):
     def get(self, request, post_id):
         try:
             post = Post.objects.prefetch_related
-            ('comment_set', 'comment_set__author').get(id=post_id)
+            ('comment_set__author').get(id=post_id)
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
@@ -246,9 +246,9 @@ class CommentModifyView(View):
             return JsonResponse({'message': 'INVALID_COMMENTS'}, status=400)
 
         if post_id != comment.post_id:
-            return JsonResponse({'message': 'POST_ID_DOES_NOT_MATCH'}, status=400) 
+            return JsonResponse({'message': 'POST_ID_DOES_NOT_MATCH'}, status=400)
 
-        if user.id != comment.user_id:
+        if user.id != comment.author_id:
             return JsonResponse({'message': 'INVALID_USER'}, status=403)
 
         comment.delete()
