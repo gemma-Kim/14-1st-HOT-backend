@@ -11,18 +11,9 @@ class Cart(models.Model):
     tracking_number = models.CharField(max_length=200, null=True)
     shipment        = models.CharField(max_length=30, default='쿠팜')
     quantity        = models.CharField(max_length=1000)
-    cartbox         = models.ForeignKey('CartBox', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'carts'
-
-
-class CartBox(models.Model):
-    user    = models.ForeignKey('user.User', on_delete=models.CASCADE)
-    product = models.ForeignKey('product.Product', on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'cart_boxs'
 
 
 class Order(TimeStampModel):
