@@ -3,6 +3,7 @@ import json
 from django.http      import JsonResponse
 from django.views     import View
 from django.db.models import Q
+from django.db        import transaction
 
 from post.models import Post, PostImage, ProductInPost, Comment, Tag, PostTag
 from user.models import User, Like, PostBookmark
@@ -144,6 +145,27 @@ class PostDetailView(View):
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
+
+
+    @transaction.atomic
+    @login_decorator
+    def put(self, request, post_id):
+        user            = request.user
+        data            = json.loads(request.body)
+        tags            = data.get('tags') #list -option
+        linked_products = data.get('linked_products') #dictionary -option
+
+    if not 'content' in data or not 'images' in data:
+        return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+    if not data['images']:
+        return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
+
+    try:
+        post = Post.objects.get(id=post_id)
+
+    except Post.DoesNotExist:
+        return JsonResponse({'message': 'INVALID_POST'}, status=400)
 
 
 class CommentView(View):
