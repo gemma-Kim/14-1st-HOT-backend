@@ -133,6 +133,20 @@ class PostDetailView(View):
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
 
+    @login_decorator
+    def delete(self, request, post_id):
+        try:
+            user = request.user
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+
+        if not user.id == post.user_id:
+            return JsonResponse({'message': 'INVALID_USER'}, status=403)
+
+        post.delete()
+        return JsonResponse({'message': 'SUCCESS'}, status=200)
+
 
 class CommentView(View):
     @login_decorator
