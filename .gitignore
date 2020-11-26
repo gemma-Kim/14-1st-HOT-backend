@@ -7,3 +7,7 @@ __pycache__/
 *.csv
 
 my_db.py
+
+debug.log
+
+*.sql
