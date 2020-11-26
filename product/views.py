@@ -54,6 +54,9 @@ class ProductListView(View):
 
             context = [
                 {
+                    'menu'                     : product.menu.name,
+                    'category'                 : product.category.name,
+                    'sub_category'             : product.sub_category.name,
                     'product_id'               : product.id,
                     'product'                  : product.name,
                     'product_image'            : [product.product_image_url for product in product.productimage_set.all()],
