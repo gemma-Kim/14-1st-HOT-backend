@@ -191,3 +191,7 @@ class CommentView(View):
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
+
+    @login_decorator
+    def delete(selft, request, post_id, comment_id):
+        pass
