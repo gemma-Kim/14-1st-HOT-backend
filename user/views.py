@@ -5,8 +5,8 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from user.utils       import login_decorator
+from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from product.models   import Product
 from post.models      import Post
 
@@ -213,19 +213,18 @@ class MyPageView(View):
     @login_decorator
     def get(self, request):
         try:
-            user                 = User.objects.get(id=request.user.id)
             posts                = Post.objects.select_related('author').prefetch_related('postbookmark_set', 'postimage_set', 'like_set')
-            bookmark_posts       = PostBookmark.objects.select_related('post').filter(user_id=user.id).order_by('-id')
-            bookmark_products    = ProductBookmark.objects.select_related('product').filter(user_id=user.id).order_by('-id')
-            bookmark_collections = CollectionBookmark.objects.select_related('collection').filter(user_id=user.id).order_by('-id')
+            bookmark_posts       = PostBookmark.objects.select_related('post').filter(user_id=request.user.id).order_by('-id')
+            bookmark_products    = ProductBookmark.objects.select_related('product').filter(user_id=request.user.id).order_by('-id')
+            bookmark_collections = CollectionBookmark.objects.select_related('collection').filter(user_id=request.user.id).order_by('-id')
 
             context  = {
-                'username'            : user.username,
-                'user_image'          : user.profile_image_url,
-                'follower'            : Follow.objects.filter(followee_id=user.id).count(),
-                'following'           : Follow.objects.filter(follower_id=user.id).count(),
+                'username'            : request.user.username,
+                'user_image'          : request.user.profile_image_url,
+                'follower'            : Follow.objects.filter(followee_id=request.user.id).count(),
+                'following'           : Follow.objects.filter(follower_id=request.user.id).count(),
                 'bookmark_count'      : bookmark_posts.count() + bookmark_products.count() + bookmark_collections.count(), 
-                'like_count'          : Like.objects.filter(user_id=user.id).count(),
+                'like_count'          : Like.objects.filter(user_id=request.user.id).count(),
 
                 'bookmark_posts'      : [
                     {
