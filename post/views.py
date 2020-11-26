@@ -2,7 +2,7 @@ import json
 
 from django.http      import JsonResponse
 from django.views     import View
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.db        import transaction
 
 from post.models import Post, PostImage, ProductInPost, Comment, Tag, PostTag
@@ -63,6 +63,16 @@ class PostView(View):
 
 
 class PostDetailView(View):
+    def listValidation(values):
+    try:
+        for value in values:
+            if not value or value.isspace():
+                return False
+    except TypeError:
+        return False
+
+    return True
+
     def get(self, request, post_id):
         try:
             post = Post.objects.prefetch_related(
@@ -146,6 +156,7 @@ class PostDetailView(View):
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
 
+
     @login_decorator
     def delete(self, request, post_id):
         try:
@@ -166,20 +177,68 @@ class PostDetailView(View):
     def put(self, request, post_id):
         user            = request.user
         data            = json.loads(request.body)
-        tags            = data.get('tags') #list -option
         linked_products = data.get('linked_products') #dictionary -option
 
-    if not 'content' in data or not 'images' in data:
-        return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+        if not 'content' in data or not 'images' in data or not 'tags' in data:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
-    if not data['images']:
-        return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
+        if not data['images']:
+            return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
 
-    try:
-        post = Post.objects.get(id=post_id)
+        try:
+            post = Post.objects.get(id=post_id)
 
-    except Post.DoesNotExist:
-        return JsonResponse({'message': 'INVALID_POST'}, status=400)
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+
+        if data['images']:
+            if not listValidation(data['images']:
+                return JsonResponse({'message': 'IMAGE_VALUE_ERROR'}, status=400)
+
+            for image in data['images']:
+                try:
+                    new_image = PostImage.objects.get(image_url=image, post=post)
+
+                except Image.DoesNotExist:
+                    new_image = PostImage.objects.create(image_url=image, post=post)
+
+        if data['tags']:
+            if not listValidation(tags):
+                return JsonResponse({'message': 'TAG_VALUE_ERROR'}, status=400)
+
+            for tag in data['tags']:
+                try:
+                    new_tag = Tag.objects.get(name=tag)
+
+                except Tag.DoesNotExist:
+                    new_tag = Tag.objects.create(name=tag)
+
+                try:
+                    PostTag.objects.get(tag=tag, post=post)
+
+                except PostTag.DoesNotExist:
+                    PostTag.objects.create(tag=new_tag, post=post)
+
+        if linked_products:
+            if not listValidation(linked_products):
+                return JsonResponse({'message': 'PRODUCT_VALUE_ERROR'}, status=400)
+
+            for linked_product_id in linked_products:
+                try:
+                    Product.objects.get(id=linked_product_id)
+                except Product.DoesNotExist:
+                    return JsonResponse({'message': 'INVALID_PRODUCT'}, status=400)
+
+                try:
+                    linked_check = ProductInPost.objects.get(post=post, product_id=linked_product_id)
+
+                except ProductInPost.DoesNotExist:
+                    ProductInPost.objects.create(post=post, product_id=linked_product_id)
+
+        post.content = data['content']
+        post.save()
+
+        return JsonResponse({'message': 'SUCCESS'}, status=200)
 
 
 class CommentView(View):
@@ -210,6 +269,7 @@ class CommentView(View):
         }
 
         return JsonResponse({'results': results}, status=200)
+
 
     @login_decorator
     def post(self, request, post_id):
