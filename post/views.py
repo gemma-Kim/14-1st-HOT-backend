@@ -18,7 +18,7 @@ class PostView(View):
             'comment_set',
             'comment_set__author',
             'postimage_set',
-        ).select_related('author').all()
+        ).select_related('author').all().order_by('-id')
 
         results = [
             {
@@ -45,7 +45,7 @@ class PostView(View):
                     }
                     for bookmark in post.postbookmark_set.all()
                 ],
-                'comment' : [
+                'comments' : [
                     {
                         'author_id'       : comment.author.id,
                         'author_username' : comment.author.username,
@@ -64,18 +64,20 @@ class PostView(View):
 class PostDetailView(View):
     def get(self, request, post_id):
         try:
-            post = Post.objects.\
-                    prefetch_related(
-                        'posttag_set',
-                        'posttag_set__tag',
-                        'postimage_set',
-                        'comment_set',
-                        'comment_set__author',
-                        'like_set',
-                        'like_set__user',
-                        'postbookmark_set',
-                        'postbookmark_set__user'
-                    ).select_related('author').get(id=post_id)
+            post = Post.objects.prefetch_related(
+                'posttag_set',
+                'posttag_set__tag',
+                'postimage_set',
+                'comment_set',
+                'comment_set__author',
+                'like_set',
+                'like_set__user',
+                'postbookmark_set',
+                'postbookmark_set__user',
+                'productinpost_set',
+                'productinpost_set__product',
+                'productinpost_set__product__productimage_set'
+            ).select_related('author').get(id=post_id)
 
             result = {
                         'post_id'         : post.id,
@@ -125,6 +127,16 @@ class PostDetailView(View):
                                 'image_url' : postimage.image_url
                             }
                             for postimage in post.postimage_set.all()
+                        ],
+                        'linked_products': [
+                            {
+                                'image_url'    : linkedproduct.product.productimage_set.first().product_image_url,
+                                'product_id'   : linkedproduct.product_id,
+                                'product_name' : linkedproduct.product.name,
+                                'left'         : linkedproduct.left_position,
+                                'top'          : linkedproduct.top_position
+                            }
+                            for linkedproduct in post.productinpost_set.all()
                         ]
             }
 
@@ -132,6 +144,20 @@ class PostDetailView(View):
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
+
+    @login_decorator
+    def delete(self, request, post_id):
+        try:
+            user = request.user
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+
+        if user.id != post.user_id:
+            return JsonResponse({'message': 'INVALID_USER'}, status=403)
+
+        post.delete()
+        return JsonResponse({'message': 'SUCCESS'}, status=200)
 
 
 class CommentView(View):
@@ -156,8 +182,26 @@ class CommentView(View):
                 author  = user,
                 parent_id = parent_id
             )
+            comments = Comment.objects.select_related('author').filter(post=post)
+            results = {
+                        'comments' : [
+                            {
+                                'id': comment.id,
+                                'author': {
+                                    'author_id'     : comment.author.id,
+                                    'username'      : comment.author.username,
+                                    'profile_image' : comment.author.profile_image_url
+                                },
+                                'content'    : comment.content,
+                                'created_at' : comment.created_at,
+                                'updated_at' : comment.updated_at,
+                                'parent_id'  : comment.parent_id
+                            }
+                            for comment in comments
+                        ]
+                    }
 
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
+            return JsonResponse({'message': 'SUCCESS', 'results':results}, status=200)
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
