@@ -2,7 +2,8 @@ import json
 
 from django.http      import JsonResponse
 from django.views     import View
-from django.db.models import Q
+from django.db.models import Q, Prefetch
+from django.db        import transaction
 
 from post.models import Post, PostImage, ProductInPost, Comment, Tag, PostTag
 from user.models import User, Like, PostBookmark
@@ -62,6 +63,17 @@ class PostView(View):
 
 
 class PostDetailView(View):
+
+    def validate_list(values):
+        try:
+            for value in values:
+                if not value or value.isspace():
+                    return False
+        except TypeError:
+            return False
+
+        return True
+
     def get(self, request, post_id):
         try:
             post = Post.objects.prefetch_related(
@@ -145,6 +157,7 @@ class PostDetailView(View):
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status = 400)
 
+
     @login_decorator
     def delete(self, request, post_id):
         try:
@@ -158,6 +171,59 @@ class PostDetailView(View):
 
         post.delete()
         return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+
+    @transaction.atomic
+    @login_decorator
+    def put(self, request, post_id):
+        try:
+            user            = request.user
+            data            = json.loads(request.body)
+            post            = Post.objects.get(id=post_id)
+            linked_products = data.get('linked_products') #dictionary -option
+
+            if post.author_id != user.id:
+                return JsonResponse({'message': 'AUTHOR_DOES_NOT_MATCH'}, status=400)
+
+            if not data['images']:
+                return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
+
+            if data['images']:
+                if not validate_list(data['images']):
+                    return JsonResponse({'message': 'IMAGE_VALUE_ERROR'}, status=400)
+
+                for image in data['images']:
+                    PostImage.objects.get_or_create(image_url=image, post=post)
+
+            if data['tags']:
+                if not validate_list(data['tags']):
+                    return JsonResponse({'message': 'TAG_VALUE_ERROR'}, status=400)
+
+                for tag in data['tags']:
+                    new_tag = Tag.objects.get_or_create(name=tag)
+                    PostTag.objects.get_or_create(tag=new_tag, post=post)
+
+            if linked_products:
+                if not validate_list(linked_products):
+                    return JsonResponse({'message': 'PRODUCT_VALUE_ERROR'}, status=400)
+
+                for linked_product_id in linked_products:
+                    Product.objects.get(id=linked_product_id)
+                    ProductInPost.objects.get_or_create(post=post, product_id=linked_product_id)
+
+            post.content = data['content']
+            post.save()
+
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+
+        except Product.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_PRODUCT'}, status=400)
 
 
 class CommentView(View):
@@ -174,20 +240,21 @@ class CommentView(View):
                 {
                     'id': comment.id,
                     'author': {
-                        'author_id' : comment.author.id,
-                        'username' : comment.author.username,
+                        'author_id'     : comment.author.id,
+                        'username'      : comment.author.username,
                         'profile_image' : comment.author.profile_image_url
                     },
-                    'content': comment.content,
-                    'created_at': comment.created_at,
-                    'updated_at': comment.updated_at,
-                    'parent_id': comment.parent_id
+                    'content'    : comment.content,
+                    'created_at' : comment.created_at,
+                    'updated_at' : comment.updated_at,
+                    'parent_id'  : comment.parent_id
                 }
                 for comment in post.comment_set.all()
             ]
         }
 
         return JsonResponse({'results': results}, status=200)
+
 
     @login_decorator
     def post(self, request, post_id):
@@ -205,13 +272,13 @@ class CommentView(View):
             post = Post.objects.get(id=post_id)
 
             Comment.objects.create(
-                content = data['content'],
-                post    = post,
-                author  = user,
+                content   = data['content'],
+                post      = post,
+                author    = user,
                 parent_id = parent_id
             )
             comments = Comment.objects.select_related('author').filter(post=post)
-            results = {
+            results  = {
                         'comments' : [
                             {
                                 'id': comment.id,
@@ -239,8 +306,8 @@ class CommentModifyView(View):
     @login_decorator
     def delete(self, request, post_id, comment_id):
         try:
-            user = request.user
-            comment = Comment.objects.get(id=comment_id)
+            user    = request.user
+            comment = Comment.objects.get(id = comment_id)
         except Comment.DoesNotExist:
             return JsonResponse({'message': 'INVALID_COMMENT'}, status=400)
 

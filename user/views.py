@@ -255,7 +255,7 @@ class MyPageView(View):
                         'post_id'  : post.id,
                         'image_url': post.postimage_set.first().image_url
                     }
-                        for post in posts if Like.objects.filter(user_id=user.id, post_id=post.id)
+                        for post in posts if Like.objects.filter(user_id=request.user.id, post_id=post.id)
                 ]
             }
 
