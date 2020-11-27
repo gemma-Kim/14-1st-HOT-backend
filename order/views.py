@@ -21,7 +21,7 @@ class AddItemView(View):
                 )
 
                 size      = d.get('label', None)
-                size_id   = Size.objects.get(name=d['label']).id
+                size_id   = Size.objects.get(name=size).id
                 color_id  = Color.objects.get(name=d['color']).id
                 detail_id = ProductDetail.objects.get(size_id=size_id, price=d['value'], product_id=product.id).id
 
@@ -51,15 +51,15 @@ class DisplayCartView(View):
                     "product_image": product.get(id=product_id).productimage_set.first().product_image_url,
                     "options"      : [
                         {
-                            "color": Color.objects.get(id=cart.color_id).name,
-                            "size" : Size.objects.get(id=cart.size_id).name,
+                            "color": cart.color.name,
+                            "size" : cart.size.name,
                             "count": cart.quantity,
                             "price": ProductDetail.objects.get(product_id=product_id, size_id=cart.size_id).price
                         }
                             for cart in carts
                     ]
                     })
-
+ 
             return JsonResponse({'message':'SUCCESS', 'context': result}, status=200)
 
         except KeyError:
