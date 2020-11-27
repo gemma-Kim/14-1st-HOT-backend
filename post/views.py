@@ -191,6 +191,9 @@ class PostDetailView(View):
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
 
+        if post.author_id != user.id:
+            return JsonResponse({'message': 'AUTHOR_DOES_NOT_MATCH'}, status=400)
+
         if data['images']:
             if not listValidation(data['images']:
                 return JsonResponse({'message': 'IMAGE_VALUE_ERROR'}, status=400)
