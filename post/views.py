@@ -258,14 +258,14 @@ class CommentView(View):
                 {
                     'id': comment.id,
                     'author': {
-                        'author_id' : comment.author.id,
-                        'username' : comment.author.username,
+                        'author_id'     : comment.author.id,
+                        'username'      : comment.author.username,
                         'profile_image' : comment.author.profile_image_url
                     },
-                    'content': comment.content,
-                    'created_at': comment.created_at,
-                    'updated_at': comment.updated_at,
-                    'parent_id': comment.parent_id
+                    'content'    : comment.content,
+                    'created_at' : comment.created_at,
+                    'updated_at' : comment.updated_at,
+                    'parent_id'  : comment.parent_id
                 }
                 for comment in post.comment_set.all()
             ]
@@ -290,13 +290,13 @@ class CommentView(View):
             post = Post.objects.get(id=post_id)
 
             Comment.objects.create(
-                content = data['content'],
-                post    = post,
-                author  = user,
+                content   = data['content'],
+                post      = post,
+                author    = user,
                 parent_id = parent_id
             )
             comments = Comment.objects.select_related('author').filter(post=post)
-            results = {
+            results  = {
                         'comments' : [
                             {
                                 'id': comment.id,
@@ -324,8 +324,8 @@ class CommentModifyView(View):
     @login_decorator
     def delete(self, request, post_id, comment_id):
         try:
-            user = request.user
-            comment = Comment.objects.get(id=comment_id)
+            user    = request.user
+            comment = Comment.objects.get(id = comment_id)
         except Comment.DoesNotExist:
             return JsonResponse({'message': 'INVALID_COMMENT'}, status=400)
 
