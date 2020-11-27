@@ -63,15 +63,16 @@ class PostView(View):
 
 
 class PostDetailView(View):
-    def listValidation(values):
-    try:
-        for value in values:
-            if not value or value.isspace():
-                return False
-    except TypeError:
-        return False
 
-    return True
+    def validate_list(values):
+        try:
+            for value in values:
+                if not value or value.isspace():
+                    return False
+        except TypeError:
+            return False
+
+        return True
 
     def get(self, request, post_id):
         try:
@@ -175,73 +176,54 @@ class PostDetailView(View):
     @transaction.atomic
     @login_decorator
     def put(self, request, post_id):
-        user            = request.user
-        data            = json.loads(request.body)
-        linked_products = data.get('linked_products') #dictionary -option
-
-        if not 'content' in data or not 'images' in data or not 'tags' in data:
-            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
-
-        if not data['images']:
-            return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
-
         try:
-            post = Post.objects.get(id=post_id)
+            user            = request.user
+            data            = json.loads(request.body)
+            post            = Post.objects.get(id=post_id)
+            linked_products = data.get('linked_products') #dictionary -option
+
+            if post.author_id != user.id:
+                return JsonResponse({'message': 'AUTHOR_DOES_NOT_MATCH'}, status=400)
+
+            if not data['images']:
+                return JsonResponse({'message': 'IMAGE_PLZ'}, status=400)
+
+            if data['images']:
+                if not validate_list(data['images']):
+                    return JsonResponse({'message': 'IMAGE_VALUE_ERROR'}, status=400)
+
+                for image in data['images']:
+                    PostImage.objects.get_or_create(image_url=image, post=post)
+
+            if data['tags']:
+                if not validate_list(data['tags']):
+                    return JsonResponse({'message': 'TAG_VALUE_ERROR'}, status=400)
+
+                for tag in data['tags']:
+                    new_tag = Tag.objects.get_or_create(name=tag)
+                    PostTag.objects.get_or_create(tag=new_tag, post=post)
+
+            if linked_products:
+                if not validate_list(linked_products):
+                    return JsonResponse({'message': 'PRODUCT_VALUE_ERROR'}, status=400)
+
+                for linked_product_id in linked_products:
+                    Product.objects.get(id=linked_product_id)
+                    ProductInPost.objects.get_or_create(post=post, product_id=linked_product_id)
+
+            post.content = data['content']
+            post.save()
+
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
         except Post.DoesNotExist:
             return JsonResponse({'message': 'INVALID_POST'}, status=400)
 
-        if post.author_id != user.id:
-            return JsonResponse({'message': 'AUTHOR_DOES_NOT_MATCH'}, status=400)
-
-        if data['images']:
-            if not listValidation(data['images']:
-                return JsonResponse({'message': 'IMAGE_VALUE_ERROR'}, status=400)
-
-            for image in data['images']:
-                try:
-                    new_image = PostImage.objects.get(image_url=image, post=post)
-
-                except Image.DoesNotExist:
-                    new_image = PostImage.objects.create(image_url=image, post=post)
-
-        if data['tags']:
-            if not listValidation(tags):
-                return JsonResponse({'message': 'TAG_VALUE_ERROR'}, status=400)
-
-            for tag in data['tags']:
-                try:
-                    new_tag = Tag.objects.get(name=tag)
-
-                except Tag.DoesNotExist:
-                    new_tag = Tag.objects.create(name=tag)
-
-                try:
-                    PostTag.objects.get(tag=tag, post=post)
-
-                except PostTag.DoesNotExist:
-                    PostTag.objects.create(tag=new_tag, post=post)
-
-        if linked_products:
-            if not listValidation(linked_products):
-                return JsonResponse({'message': 'PRODUCT_VALUE_ERROR'}, status=400)
-
-            for linked_product_id in linked_products:
-                try:
-                    Product.objects.get(id=linked_product_id)
-                except Product.DoesNotExist:
-                    return JsonResponse({'message': 'INVALID_PRODUCT'}, status=400)
-
-                try:
-                    linked_check = ProductInPost.objects.get(post=post, product_id=linked_product_id)
-
-                except ProductInPost.DoesNotExist:
-                    ProductInPost.objects.create(post=post, product_id=linked_product_id)
-
-        post.content = data['content']
-        post.save()
-
-        return JsonResponse({'message': 'SUCCESS'}, status=200)
+        except Product.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_PRODUCT'}, status=400)
 
 
 class CommentView(View):
