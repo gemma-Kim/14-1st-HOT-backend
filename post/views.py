@@ -238,12 +238,11 @@ class CommentView(View):
 class CommentModifyView(View):
     @login_decorator
     def delete(self, request, post_id, comment_id):
-
         try:
             user = request.user
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return JsonResponse({'message': 'INVALID_COMMENTS'}, status=400)
+            return JsonResponse({'message': 'INVALID_COMMENT'}, status=400)
 
         if post_id != comment.post_id:
             return JsonResponse({'message': 'POST_ID_DOES_NOT_MATCH'}, status=400)
@@ -252,4 +251,31 @@ class CommentModifyView(View):
             return JsonResponse({'message': 'INVALID_USER'}, status=403)
 
         comment.delete()
+        return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+    @login_decorator
+    def patch(self, request, post_id, comment_id):
+        data = json.loads(request.body)
+        user = request.user
+
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_COMMENT'}, status=400)
+
+        if post_id != comment.post_id:
+            return JsonResponse({'message': 'POST_DOES_NOT_MATCH'}, status=400)
+
+        if user.id != comment.author_id:
+            return JsonResponse({'message': 'INVALID_USER'}, status=403)
+
+        if not 'content' in data:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+        if not data['content'] or data['content'].isspace():
+            return JsonResponse({'message': 'CONTENT_VALUE_ERROR'}, status=400)
+
+        comment.content = data['content']
+        comment.save()
+
         return JsonResponse({'message': 'SUCCESS'}, status=200)
