@@ -58,5 +58,7 @@
   - \[댓글 삭제하기] DELETE /posts/<int:post_id>/comments/<int:comment_id>
   
 - 김민서
-
+  - 작성중
+  
 - 김기용
+  - 작성중
