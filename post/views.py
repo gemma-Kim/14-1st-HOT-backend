@@ -26,7 +26,8 @@ class PostView(View):
 
             #sort by a number of likes | bookmarks      | comments
             #query str example  'like' |'postbookmark' | 'comment'
-            posts = posts.annotate(count=Count(sortby)).order_by('-count','-id')
+            if sortby:
+                posts = posts.annotate(count=Count(sortby)).order_by('-count','-id')
 
             results = [
                 {
