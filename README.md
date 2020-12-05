@@ -48,14 +48,14 @@
 
 # Api Document
 - 강두연
-  - \[포스트리스트 불러오기] GET /posts (?sort='<like|postbookmark|comment>')
-  - \[포스트상세정보 불러오기] GET /posts/<int:post_id>
-  - \[포스트 수정하기] PUT /posts/<int:post_id>
-  - \[포스트 삭제하기] DELETE /posts/<int:post_id>
-  - \[댓글 등록하기] POST /posts/<int:post_id>/comments
-  - \[댓글 불러오기] GET /posts/<int:post_id>/comments
-  - \[댓글 수정하기] PATCH /posts/<int:post_id>/comments/<int:comment_id>
-  - \[댓글 삭제하기] DELETE /posts/<int:post_id>/comments/<int:comment_id>
+  - \[포스트리스트 불러오기] GET /posts (?sort='\<like|postbookmark|comment\>')
+  - \[포스트상세정보 불러오기] GET /posts/\<int:post_id\>
+  - \[포스트 수정하기] PUT /posts/\<int:post_id\>
+  - \[포스트 삭제하기] DELETE /posts/\<int:post_id\>
+  - \[댓글 등록하기] POST /posts/\<int:post_id\>/comments
+  - \[댓글 불러오기] GET /posts/\<int:post_id\>/comments
+  - \[댓글 수정하기] PATCH /posts/\<int:post_id\>/comments/<int:comment_id>
+  - \[댓글 삭제하기] DELETE /posts/\<int:post_id\>/comments/<int:comment_id>
   
 - 김민서
   - 작성중
