@@ -8,14 +8,14 @@
 - 오늘의 집 서비스 특징 : 커뮤니티와 스토어를 서로 연결시켜 두었다는 것이 가장 큰 장점이다. 즉, 피드를 구경하다 방을 구성하고 있는 제품들에 대한 정보를 바로 알 수 있고 구매까지 할 수 있다. 또한 제품을 고르다 해당 제품이 게시된 피드를 보러 커뮤니티로 바로 이동할 수도 있다.
 ## Team Members
 🐶 Front-end ([github repo](https://github.com/wecode-bootcamp-korea/14-1st-HOT-frontend))
-- [안상혁 (PM)](https://github.com/Xednicoder)
-- [공주민](https://github.com/rhdwnals1)
-- [이승윤](https://github.com/14-yoonl)
+- 안상혁 (PM) - [github](https://github.com/Xednicoder)
+- 공주민 - [github](https://github.com/rhdwnals1)
+- 이승윤 - [github](https://github.com/14-yoonl)
 
 🐼 Back-end ([github repo](https://github.com/wecode-bootcamp-korea/14-1st-HOT-backend))
-- [강두연](https://github.com/dooyeonk)
-- [김기용](https://github.com/amusesla)
-- [김민서](https://github.com/gemma-Kim)
+- 강두연 - [github](https://github.com/dooyeonk), [후기](https://velog.io/@dooyeonk/%EC%98%A4%EB%8A%98%EC%9D%98-%EC%A7%91-%ED%81%B4%EB%A1%A0-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%ED%9B%84%EA%B8%B0-%EB%B0%B1%EC%97%94%EB%93%9C)
+- 김기용 - [github](https://github.com/amusesla)
+- 김민서 - [github](https://github.com/gemma-Kim)
 
 # Technologies
 - Python
