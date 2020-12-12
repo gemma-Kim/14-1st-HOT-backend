@@ -58,6 +58,15 @@
   - \[댓글 삭제하기] DELETE /posts/\<int:post_id\>/comments/\<int:comment_id\>
   
 - 김민서
-  - [로그인, 회원가입] 
+  - \[회원가입] POST /user/register
+  - \[로그인] POST /user/login
+  - \[포스트 좋아요 등록하기] POST /user/like
+  - \[포스트 좋아요 취소하기] POST /user/unlike
+  - \[유저 팔로우 등록하기] POST /user/like
+  - \[유저 팔로우 취소하기] POST /user/unlike
+  - \[콜렉션 / 프로덕트 / 포스트 북마크 등록하기] POST /user/bookmark
+  - \[콜렉션 / 프로덕트 / 포스트 북마크 취소하기] POST /user/unbookmark
+  - \[마이페이지 정보 불러오기] GET /user/mypage
+  
 - 김기용
   - 작성중
