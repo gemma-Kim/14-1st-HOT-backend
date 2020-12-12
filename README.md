@@ -71,4 +71,4 @@
 - 김기용
   - \[제품 리스트 필터 및 검색] GET /store/products (?menu=1&category=1&sub_category=1&search=[제품명])
   - \[제품 카테고리 리스트] GET /store/categoreis?menu=1
-  - \[제품 디테일] GET /sotre/<int:product_id>
+  - \[제품 디테일] GET /store/\<int:product_id\>
