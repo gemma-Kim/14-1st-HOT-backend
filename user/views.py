@@ -10,6 +10,7 @@ from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, 
 from product.models   import Product
 from post.models      import Post
 
+
 class RegisterView(View):
     def post(self, request):
         try:
@@ -69,34 +70,30 @@ class LogInView(View):
 
 class FollowView(View):
     @login_decorator
-    def post(self, request):
+    def post(self, request, user_id):
         try:
-            data = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
 
-            if type(data['id']) != int:
-                return JsonResponse({'message':'TYPE_ERROR'}, status=400)
-
-            if user.id == data['id']:
+            if user.id == user_id:
                 return JsonResponse({'message':'DUPLICATE_ID'}, status=400)
 
-            if Follow.objects.filter(follower_id=user.id, followee_id=data['id']).exists():
+            if Follow.objects.filter(follower_id=user.id, followee_id=user_id).exists():
                 return JsonResponse({'message':'INVALID_FOLLOW'}, status=400)
 
-            Follow.objects.create(follower_id=user.id, followee_id=data['id'])
+            Follow.objects.create(follower_id=user.id, followee_id=user_id)
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
+
 class UnFollowView(View):
     @login_decorator
-    def post(self, request):
+    def post(self, request, user_id):
         try:
-            data          = json.loads(request.body)
             user          = User.objects.get(id=request.user.id)
-            follow_status = Follow.objects.filter(follower_id=user.id, followee_id=data['id'])
+            follow_status = Follow.objects.filter(follower_id=user.id, followee_id=user_id)
 
             if not follow_status.exists():
                 return JsonResponse({'messsage':'INVALID_UNFOLLOW'}, status=400)
@@ -133,7 +130,7 @@ class BookmarkView(View):
 
             if CollectionBookmark.objects.filter(user_id=request.user.id, collection_id=data['collection_id']).exists():
                 return JsonResponse({'message':'INVALID_BOOKMARK'}, status=400)
- 
+
             CollectionBookmark.objects.create(user_id=request.user.id, collection_id=data['collection_id'])
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
@@ -173,40 +170,6 @@ class UnBookmarkView(View):
 
          except KeyError:
              return JsonResponse({'message':'KEY_ERROR'}, status=400)
-
-
-class LikeView(View):
-    @login_decorator
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-
-            if Like.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
-                return JsonResponse({'message':'INVALID_LIKE'}, status=400)
-
-            Like.objects.create(user_id=request.user.id, post_id=data['post_id'])
-
-            return JsonResponse({'message':'SUCCESS'}, status=200)
-
-        except KeyError:
-            return JsonResponse({'message':"KEY_ERROR"}, status=400)
-
-
-class UnLikeView(View):
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-
-            if not Like.objects.filter(user_id=request.user.id, post_id=data['post_id']).exists():
-
-                return JsonResponse({'message':'INVALID_DELETE'}, status=400)
-
-            Like.objects.filter(user_id=user.id, post_id=data['post_id']).delete()
-
-            return JsonResponse({'message':'SUCCESS'}, status=200)
-
-        except KeyError:
-            return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
 class MyPageView(View):
@@ -263,3 +226,10 @@ class MyPageView(View):
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
+
+
+class SampleView(View):
+    def get(self, request, post_id):
+
+        print(post_id)
+        return JsonResponse({'message':'SUCCESS'}, status=200)
