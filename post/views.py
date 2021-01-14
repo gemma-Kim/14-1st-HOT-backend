@@ -357,3 +357,38 @@ class CommentModifyView(View):
         comment.save()
 
         return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+
+class LikeView(View):
+    @login_decorator
+    def post(self, request, post_id):
+        try:
+            post      = Post.objects.get(post_id=post_id)
+            like_post = Like.objects.get(user_id=request.user.id, post_id=post_id)
+
+            if not like_post:
+                Like.objects.create(user_id=request.user.id, post_id=post_id)
+
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+        except KeyError:
+            return JsonResponse({'message':"KEY_ERROR"}, status=400)
+
+
+class UnLikeView(View):
+    def post(self, request, post_id):
+        try:
+            post      = Post.objects.get(post_id=post_id)
+            like_post = Like.objects.get(user_id=request.user.id, post_id=post_id)
+
+            Like.objects.filter(user_id=user.id, post_id=post_id).delete()
+            return JsonResponse({'message':'SUCCESS'}, status=200)
+
+        except Post.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_POST'}, status=400)
+        except Like.DoesNotExist:
+            return JsonResponse({'message': 'INVALID_LIKE'}, status=400)
+        except KeyError:
+            return JsonResponse({'message':'KEY_ERROR'}, status=400)
