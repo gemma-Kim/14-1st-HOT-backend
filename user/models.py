@@ -42,12 +42,14 @@ class PostBookmark(TimeStampModel):
     class Meta:
         db_table = 'post_bookmarks'
 
+
 class CollectionBookmark(TimeStampModel):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     collection = models.ForeignKey('product.Collection', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'collection_bookmarks'
+
 
 class Like(TimeStampModel):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
