@@ -71,9 +71,11 @@ class Color(models.Model):
     class Meta:
         db_table = 'colors'
 
+
 class ColorSet(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     color   = models.ForeignKey('Color', on_delete=models.CASCADE)
+
 
 class Size(models.Model):
     name = models.CharField(max_length=200)
@@ -89,7 +91,6 @@ class ProductDetail(models.Model):
 
     class Meta:
         db_table = 'product_details'
-
 
 
 class ProductImage(models.Model):

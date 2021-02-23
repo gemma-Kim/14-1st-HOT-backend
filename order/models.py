@@ -8,7 +8,7 @@ class Cart(models.Model):
     product  = models.ForeignKey('product.Product', on_delete=models.SET_NULL, null=True)
     user     = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
     order    = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True)
-    color    = models.ForeignKey('product.Color', on_delete=models.CASCADE)
+    color    = models.ForeignKey('product.Color', on_delete=models.CASCADE, null=True)
     size     = models.ForeignKey('product.Size', on_delete=models.SET_NULL, null=True)
     quantity = models.CharField(max_length=1000)
 
