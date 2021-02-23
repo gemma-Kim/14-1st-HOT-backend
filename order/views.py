@@ -1,39 +1,43 @@
 import json
 
-from django.views     import View
+from django.db        import transaction
+from django.db.models import Q
 from django.http      import JsonResponse
+from django.views     import View
 
 from .models        import Cart, Order
-from product.models import Product, ProductDetail, ProductImage, Seller, Size, Color
-from user.models    import User
 from user.utils     import login_decorator
+from user.models    import User
+from product.models import Product, ProductDetail, ProductImage, Seller, Size, Color
 
 
 class AddItemView(View):
+    @transaction.atomic
     @login_decorator
     def post(self, request):
         try:
             carts = json.loads(request.body)
             for cart in carts:
-                seller   = cart.get('seller', None)
-                size     = cart.get('label', None)
-                color    = cart.get('color', None)
-                price    = cart.get('value', None)
-                quantity = cart.get('count', "1")
+                product_id = cart.get('product_id', None)
+                size       = cart.get('label', None)
+                color      = cart.get('color', None)
+                quantity   = cart.get('count', "1")
 
-                if seller:
-                    product = Product.objects.get(
-                        id        = cart['product_id'],
-                        seller_id = Seller.objects.get(name=seller).id
-                    )
-                if size: 
-                    size_id   = Size.objects.get(name=size).id
+                if product_id:
+                    product = Product.objects.get(id=cart['product_id'])
+                if size:
+                    size   = Size.objects.get(name=size).id
                 if color:
-                    color_id  = Color.objects.get(name=color).id
-                if price:
-                    detail_id = ProductDetail.objects.get(size_id=size_id, price=price, product_id=product.id).id
-
-                Cart.objects.create(product_id=product.id, size_id=size_id, user_id=request.user.id, quantity=quantity, color_id=color_id)
+                    color  = Color.objects.get(name=color).id
+                
+                Cart.objects.create(
+                    product_id=product.id, 
+                    user_id=request.user.id,
+                    order_id=None, 
+                    quantity=quantity, 
+                    color_id=color,
+                    size_id=size 
+                )
 
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
@@ -44,46 +48,23 @@ class AddItemView(View):
 
 
 class UpdateItemView(View):
+    @transaction.atomic
     @login_decorator
     def patch(self, request, product_id):
         try:
-            data     = json.loads(request.body)
-            seller   = data.get('seller', None)
-            price    = data.get('value', None)
-            quantity = data.get('count', None)
-            size     = data.get('label', None)
-            color    = data.get('color', None)
-
-            if size:
-                size = Size.objects.get(name=size).id
-            if color:
-                color = Color.objects.get(name=color).id
-
-            cart = Cart.objects.get(
-                product_id=cart.get('product_id'), 
-                user_id=request.user.id,
-                order_id=None,
-                size_id=size,
-                color_id=color,
-                quantity=quantity
-            )
-
-            new_size     = data.get('new_size', None)
-            new_color    = data.get('new_color', None)
-            new_quantity = data.get('new_quantity', "1")
-
-            if new_size:
-                size_id = Size.objects.get(name=new_size).id
-                cart.size_id = size_id
-            if new_color:
-                color_id = Size.objects.get(name=new_color).id
-                cart.color_id = color_id
-            if new_quantity:
-                cart.quantity = new_quantity
-            cart.save()
-
+            data  = json.loads(request.body)
+            carts = data.get('carts', None)
+            
+            if not carts:
+                return JsonResponse({'message':'NO_DATA'}, status=400)
+                
+            for cart in carts:
+                new_cart = Cart.objects.get(id=cart.get('cart_id'))
+                if new_cart:
+                    new_cart.quantity = cart.get('count', "1")
+                    new_cart.save()
             return JsonResponse({'message':'SUCCESS'}, status=200)
-        
+
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
         except Cart.DoesNotExist:
@@ -94,17 +75,23 @@ class RemoveItemView(View):
     @login_decorator
     def post(self, request):
         try:
-            data       = json.loads(request.body)
-            product_id = data.get("product_id", None)
-            cart_ids   = data.get('cart_ids', None)
+            data        = json.loads(request.body)
+            product_ids = data.get("product_id", None)
+            cart_id     = data.get('cart_id', None)
             
-            if product_id and not cart_ids:
-                carts = Cart.objects.filter(product_id=product_id, user_id=request.user.id)
-                carts.delete()
-            if not product_id and cart_ids:
-                for cart_id in cart_ids:
-                    cart = Cart.objects.get(id=cart_id)
-                    if cart:
+            if product_ids:
+                cart_filter = Q(user_id=request.user.id)
+                for product_id in product_ids:
+                    cart_filter.add(Q(product_id=product_id), cart_filter.OR)
+                carts = Cart.objects.filter(cart_filter)
+                if carts:
+                    with transaction.atomic():
+                        carts.delete()
+            
+            if cart_id:
+                cart = Cart.objects.get(id=cart_id, user_id=request.user.id)
+                if cart:
+                    with transaction.atomic():
                         cart.delete()
             
         except KeyError:
