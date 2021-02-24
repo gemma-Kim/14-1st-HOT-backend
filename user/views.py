@@ -211,10 +211,22 @@ class MyPageView(View):
             followers            = Follow.objects.filter(followee_id=user.id)
             followings           = Follow.objects.filter(follower_id=user.id)
             likes                = Like.objects.filter(user_id=request.user.id)
-            bookmark_posts       = PostBookmark.objects.select_related('post').filter(user_id=user.id).order_by('-id')
-            bookmark_products    = ProductBookmark.objects.select_related('product').filter(user_id=user.id).order_by('-id')
-            bookmark_collections = CollectionBookmark.objects.select_related('collection').filter(user_id=user.id).order_by('-id')
-            like_posts           = Like.objects.filter(user_id=user.id).select_related('post').order_by('-id')
+
+            bookmark_posts       = PostBookmark.objects\
+                                        .select_related('post').prefetch_related('postimage_set')\
+                                        .filter(user_id=user.id).order_by('-id')
+
+            bookmark_products    = ProductBookmark.objects\
+                                        .select_related('product').prefetch_related('productimage_set')\
+                                        .filter(user_id=user.id).order_by('-id')
+
+            bookmark_collections = CollectionBookmark.objects\
+                                        .select_related('collection').prefetch_related('product_set', 'productimage_set')\
+                                        .filter(user_id=user.id).order_by('-id')
+
+            like_posts           = Like.objects\
+                                        .select_related('post').prefetch_related('postimage_set')\
+                                        .filter(user_id=user.id).order_by('-id')
             
             context = {
                 'username'      : user.username,
