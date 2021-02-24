@@ -211,23 +211,11 @@ class MyPageView(View):
             followers            = Follow.objects.filter(followee_id=user.id)
             followings           = Follow.objects.filter(follower_id=user.id)
             likes                = Like.objects.filter(user_id=request.user.id)
+            bookmark_posts       = PostBookmark.objects.select_related('post').filter(user_id=user.id).order_by('-id')
+            bookmark_products    = ProductBookmark.objects.select_related('product').filter(user_id=user.id).order_by('-id')
+            bookmark_collections = CollectionBookmark.objects.select_related('collection').filter(user_id=user.id).order_by('-id')
+            like_posts           = Like.objects.select_related('post').filter(user_id=user.id).order_by('-id')
 
-            bookmark_posts       = PostBookmark.objects\
-                                        .select_related('post').prefetch_related('postimage_set')\
-                                        .filter(user_id=user.id).order_by('-id')
-
-            bookmark_products    = ProductBookmark.objects\
-                                        .select_related('product').prefetch_related('productimage_set')\
-                                        .filter(user_id=user.id).order_by('-id')
-
-            bookmark_collections = CollectionBookmark.objects\
-                                        .select_related('collection').prefetch_related('product_set', 'productimage_set')\
-                                        .filter(user_id=user.id).order_by('-id')
-
-            like_posts           = Like.objects\
-                                        .select_related('post').prefetch_related('postimage_set')\
-                                        .filter(user_id=user.id).order_by('-id')
-            
             context = {
                 'username'      : user.username,
                 'user_image'    : user.profile_image_url,
@@ -237,21 +225,21 @@ class MyPageView(View):
                 'bookmark_count': bookmark_posts.count() + bookmark_products.count() + bookmark_collections.count(), 
                 'bookmark_posts': [
                     {
-                        'post_id'  : bookmark_post.post_id,
+                        'post_id'  : bookmark_post.post.id,
                         'image_url': bookmark_post.post.postimage_set.first().image_url
                     }
                         for bookmark_post in bookmark_posts
                 ],
                 'bookmark_products': [
                     {
-                        'product_id': bookmark_product.product_id,
+                        'product_id': bookmark_product.product.id,
                         'image_url' : bookmark_product.product.productimage_set.first().product_image_url
                     }
                         for bookmark_product in bookmark_products
                 ],
                 'bookmark_collections': [
                     {
-                        'collection_id': bookmark_collection.collection_id,
+                        'collection_id': bookmark_collection.collection.id,
                         'image_url'    : bookmark_collection.collection.product_set.first().productimage_set.first().product_image_url
                     }
                         for bookmark_collection in bookmark_collections if bookmark_collection.collection.product_set.first()
