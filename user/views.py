@@ -9,7 +9,7 @@ from my_settings      import SECRET_KEY, ALGORITHM
 from user.utils       import login_decorator
 from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from product.models   import Product
-from post.models      import Post
+from post.models      import Post, PostImage
 
 
 class RegisterView(View):
@@ -211,11 +211,27 @@ class MyPageView(View):
             followers            = Follow.objects.filter(followee_id=user.id)
             followings           = Follow.objects.filter(follower_id=user.id)
             likes                = Like.objects.filter(user_id=request.user.id)
-            bookmark_posts       = PostBookmark.objects.select_related('post').filter(user_id=user.id).order_by('-id')
-            bookmark_products    = ProductBookmark.objects.select_related('product').filter(user_id=user.id).order_by('-id')
-            bookmark_collections = CollectionBookmark.objects.select_related('collection').filter(user_id=user.id).order_by('-id')
-            like_posts           = Like.objects.select_related('post').filter(user_id=user.id).order_by('-id')
 
+            bookmark_posts       = PostBookmark.objects\
+                .select_related('post')\
+                .prefetch_related('post__postimage_set')\
+                .filter(user_id=user.id).order_by('-id')
+
+            bookmark_products    = ProductBookmark.objects\
+                .select_related('product')\
+                .prefetch_related('product__productimage_set')\
+                .filter(user_id=user.id).order_by('-id')
+
+            bookmark_collections = CollectionBookmark.objects\
+                .select_related('collection')\
+                .prefetch_related('collection__product_set','collection__product_set__productimage_set')\
+                .filter(user_id=user.id).order_by('-id')
+
+            like_posts           = Like.objects\
+                .select_related('post')\
+                .prefetch_related('post__postimage_set')\
+                .filter(user_id=user.id).order_by('-id')
+            
             context = {
                 'username'      : user.username,
                 'user_image'    : user.profile_image_url,

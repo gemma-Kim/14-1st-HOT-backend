@@ -104,32 +104,33 @@ class DisplayCartView(View):
     @login_decorator
     def get(self, request):
         try:
-            carts       = Cart.objects.filter(user_id=request.user.id, order_id=None)
-            product_ids = list(set([cart.product_id for cart in carts]))
-            product     = Product.objects.prefetch_related('productimage_set')
+            all_carts   = Cart.objects.select_related('product').filter(user_id=request.user.id, order_id=None)
+            product_ids = set([cart.product.id for cart in all_carts])
             result      = []
             
             if product_ids:
                 for product_id in product_ids:
-                    carts = Cart.objects.filter(user_id=request.user.id, product_id=product_id)
+                    product = Product.objects.get(id=product_id)
+                    carts = Cart.objects.select_related('color', 'size').filter(user_id=request.user.id, product_id=product_id)
+                    
                     result.append({
-                        "product_id"   : product_id,
-                        "product_name" : Product.objects.get(id=product_id).name,
-                        "product_image": product.get(id=product_id).productimage_set.first().product_image_url,
+                        "product_id"   : product.id,
+                        "product_name" : product.name,
+                        "product_image": product.productimage_set.first().product_image_url,
                         "options"      : [
                             {
                                 "cart_id": cart.id,
                                 "color"  : cart.color.name,
                                 "size"   : cart.size.name,
                                 "count"  : cart.quantity,
-                                "price"  : ProductDetail.objects.get(product_id=product_id, size_id=cart.size_id).price
+                                "price"  : ProductDetail.objects.get(product_id=product.id, size_id=cart.size.id).price
                             }
                                 for cart in carts
                         ]
                     })
 
                 return JsonResponse({'message':'SUCCESS', 'context':result}, status=200)
-            
+
             return JsonResponse({'message':"NO_DATA"}, status=200)
 
         except KeyError:
