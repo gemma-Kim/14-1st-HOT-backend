@@ -1,7 +1,7 @@
 import re, json, bcrypt, jwt
 
 from django.db        import transaction
-from django.db.models import Q
+from django.db.models import Q, Count, Prefetch
 from django.views     import View
 from django.http      import JsonResponse
 
@@ -207,17 +207,21 @@ class MyPageView(View):
     @login_decorator
     def get(self, request):
         try:
-            user                 = User.objects.get(id=request.user.id)
-            followers            = Follow.objects.filter(followee_id=user.id)
-            followings           = Follow.objects.filter(follower_id=user.id)
-            likes                = Like.objects.filter(user_id=request.user.id)
-
-            bookmark_posts       = PostBookmark.objects\
+            user = User.objects.get(id=request.user.id)
+            likes = Like.objects.filter(user_id=request.user.id).aggregate(like_num=Count('post'))
+            
+            follows = Follow.objects.aggregate(
+                follower_num=Count('followee', filter=Q(followee_id=user.id)), 
+                following_num=Count('follower', filter=Q(follower_id=user.id))
+            )
+            
+            bookmark_posts = PostBookmark.objects\
                 .select_related('post')\
                 .prefetch_related('post__postimage_set')\
-                .filter(user_id=user.id).order_by('-id')
+                .filter(user_id=user.id)\
+                .order_by('-id')
 
-            bookmark_products    = ProductBookmark.objects\
+            bookmark_products = ProductBookmark.objects\
                 .select_related('product')\
                 .prefetch_related('product__productimage_set')\
                 .filter(user_id=user.id).order_by('-id')
@@ -227,7 +231,7 @@ class MyPageView(View):
                 .prefetch_related('collection__product_set','collection__product_set__productimage_set')\
                 .filter(user_id=user.id).order_by('-id')
 
-            like_posts           = Like.objects\
+            like_posts = Like.objects\
                 .select_related('post')\
                 .prefetch_related('post__postimage_set')\
                 .filter(user_id=user.id).order_by('-id')
@@ -235,35 +239,35 @@ class MyPageView(View):
             context = {
                 'username'      : user.username,
                 'user_image'    : user.profile_image_url,
-                'follower'      : followers.count(),
-                'following'     : followings.count(),
-                'like_count'    : likes.count(),
+                'follower'      : follows['follower_num'],
+                'following'     : follows['following_num'],
+                'like_count'    : likes['like_num'],
                 'bookmark_count': bookmark_posts.count() + bookmark_products.count() + bookmark_collections.count(), 
                 'bookmark_posts': [
                     {
                         'post_id'  : bookmark_post.post.id,
-                        'image_url': bookmark_post.post.postimage_set.first().image_url
+                        'image_url': bookmark_post.post.postimage_set.all()[0].image_url
                     }
                         for bookmark_post in bookmark_posts
                 ],
                 'bookmark_products': [
                     {
                         'product_id': bookmark_product.product.id,
-                        'image_url' : bookmark_product.product.productimage_set.first().product_image_url
+                        'image_url' : bookmark_product.product.productimage_set.all()[0].product_image_url
                     }
                         for bookmark_product in bookmark_products
                 ],
                 'bookmark_collections': [
                     {
                         'collection_id': bookmark_collection.collection.id,
-                        'image_url'    : bookmark_collection.collection.product_set.first().productimage_set.first().product_image_url
+                        'image_url'    : bookmark_collection.collection.product_set.all()[0].productimage_set.all()[0].product_image_url
                     }
-                        for bookmark_collection in bookmark_collections if bookmark_collection.collection.product_set.first()
+                        for bookmark_collection in bookmark_collections if bookmark_collection.collection.product_set.all()
                 ],
                 'like': [
                     {
                         'post_id'  : like_post.post.id,
-                        'image_url': like_post.post.postimage_set.first().image_url
+                        'image_url': like_post.post.postimage_set.all()[0].image_url
                     }   
                         for like_post in like_posts if like_post.post
                 ]
