@@ -19,6 +19,7 @@ class AddItemView(View):
             carts = json.loads(request.body)
             for cart in carts:
                 product_id = cart.get('product_id', None)
+                price      = cart.get('price', None)
                 size       = cart.get('label', None)
                 color      = cart.get('color', None)
                 quantity   = cart.get('count', "1")
@@ -33,7 +34,8 @@ class AddItemView(View):
                 Cart.objects.create(
                     product_id=product.id, 
                     user_id=request.user.id,
-                    order_id=None, 
+                    order_id=None,
+                    price=price, 
                     quantity=quantity, 
                     color_id=color,
                     size_id=size 
@@ -62,6 +64,7 @@ class UpdateItemView(View):
                 new_cart = Cart.objects.get(id=cart.get('cart_id'))
                 if new_cart:
                     new_cart.quantity = cart.get('count', "1")
+                    new_cart.price    = cart.get('price')
                     new_cart.save()
             return JsonResponse({'message':'SUCCESS'}, status=200)
 
@@ -76,7 +79,7 @@ class RemoveItemView(View):
     def post(self, request):
         try:
             data        = json.loads(request.body)
-            product_ids = data.get("product_id", None)
+            product_ids = data.get("product_ids", None)
             cart_id     = data.get('cart_id', None)
             
             if product_ids:
@@ -87,12 +90,16 @@ class RemoveItemView(View):
                 if carts:
                     with transaction.atomic():
                         carts.delete()
+                        return JsonResponse({'message':'SUCCESS'}, status=200)
             
             if cart_id:
                 cart = Cart.objects.get(id=cart_id, user_id=request.user.id)
                 if cart:
                     with transaction.atomic():
                         cart.delete()
+                        return JsonResponse({'message':'SUCCESS'}, status=200)
+            
+            return JsonResponse({'message':'NO_DATA', 'error_message':'삭제할 장바구니가 존재하지 않습니다.'}, status=400)
             
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
@@ -110,20 +117,20 @@ class DisplayCartView(View):
             
             if product_ids:
                 for product_id in product_ids:
-                    product = Product.objects.get(id=product_id)
+                    product = Product.objects.prefetch_related('productdetail_set').get(id=product_id)
                     carts = Cart.objects.select_related('color', 'size').filter(user_id=request.user.id, product_id=product_id)
-                    
+
                     result.append({
                         "product_id"   : product.id,
                         "product_name" : product.name,
-                        "product_image": product.productimage_set.first().product_image_url,
+                        "product_image": product.productimage_set.all()[0].product_image_url,
                         "options"      : [
                             {
                                 "cart_id": cart.id,
                                 "color"  : cart.color.name,
                                 "size"   : cart.size.name,
                                 "count"  : cart.quantity,
-                                "price"  : ProductDetail.objects.get(product_id=product.id, size_id=cart.size.id).price
+                                "price"  : cart.price
                             }
                                 for cart in carts
                         ]

@@ -11,6 +11,7 @@ class Cart(models.Model):
     color    = models.ForeignKey('product.Color', on_delete=models.CASCADE, null=True)
     size     = models.ForeignKey('product.Size', on_delete=models.SET_NULL, null=True)
     quantity = models.CharField(max_length=1000)
+    price    = models.DecimalField(max_digits=20, decimal_places=2)
 
     class Meta:
         db_table = 'carts'
