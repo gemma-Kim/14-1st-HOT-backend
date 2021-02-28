@@ -13,7 +13,6 @@ from post.models      import Post, PostImage
 
 
 class RegisterView(View):
-    @transaction.atomic
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -45,7 +44,6 @@ class RegisterView(View):
 
 
 class LogInView(View):
-    @transaction.atomic
     def post(self, request):
         try:
             data             = json.loads(request.body)
@@ -72,7 +70,6 @@ class LogInView(View):
 
 
 class FollowView(View):
-    @transaction.atomic
     @login_decorator
     def post(self, request, user_id):
         try:
@@ -116,7 +113,6 @@ class UnFollowView(View):
 
 
 class BookmarkView(View):
-    @transaction.atomic
     @login_decorator
     def post(self, request):
         try:
@@ -269,7 +265,7 @@ class MyPageView(View):
                         'post_id'  : like_post.post.id,
                         'image_url': like_post.post.postimage_set.all()[0].image_url
                     }   
-                        for like_post in like_posts if like_post.post
+                        for like_post in like_posts if like_post.post.postimage_set.all()
                 ]
             }
             return JsonResponse({'context': context}, status=200)
