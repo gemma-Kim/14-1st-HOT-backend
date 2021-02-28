@@ -12,7 +12,6 @@ from product.models import Product, ProductDetail, ProductImage, Seller, Size, C
 
 
 class AddItemView(View):
-    @transaction.atomic
     @login_decorator
     def post(self, request):
         try:
