@@ -1,5 +1,3 @@
-import re
-
 from django.urls import path
 from .views      import RegisterView, LogInView, FollowView, UnFollowView, BookmarkView, UnBookmarkView, MyPageView
 
