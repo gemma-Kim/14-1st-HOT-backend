@@ -1,3 +1,6 @@
+from django.shortcuts import render
+
+# Create your views here.
 import re, json, bcrypt, jwt
 
 from django.db        import transaction
