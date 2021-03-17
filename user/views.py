@@ -14,37 +14,24 @@ from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, 
 from product.models   import Product
 from post.models      import Post, PostImage
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from user.serializers import RegisterSerializer
 
-class RegisterView(View):
+# @api_view['POST']
+class RegisterView(APIView):
     def post(self, request):
         try:
-            data = json.loads(request.body)
-
-            email     = data['email']
-            username  = data['username']
-            password  = data['password']
-
-            email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-
-            if not re.match(email_validation, email):
-                return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
-
-            if User.objects.filter(Q(email=email) | Q(username=username)).exists():
-                return JsonResponse({'message':'EXIST_USER'}, status=400)
-
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-            User.objects.create(
-                username = username,
-                email    = email,
-                password = hashed_password
-            )
-
-            return JsonResponse({'message':'SUCCESS'}, status=200)
-
+            serializer = RegisterSerializer(data=request.data)
+            if serializer.is_valid():
+                if serializer.validate(serializer.initial_data):
+                    serializer.save()
+                    return Response(data='SUCCESS', status=200)
+            return Response(data='INVALID_REGISTER_INFO', status=400)
+        
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'}, status=400)
-
 
 class LogInView(View):
     def post(self, request):
