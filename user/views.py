@@ -9,7 +9,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.utils       import login_decorator
+from user.utils       import login_decorator, validator
 from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from product.models   import Product
 from post.models      import Post, PostImage
@@ -17,46 +17,70 @@ from post.models      import Post, PostImage
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from user.serializers import RegisterSerializer
+from user.serializers import UserSerializer, LoginSerializer
 
-# @api_view['POST']
+
 class RegisterView(APIView):
     def post(self, request):
-        try:
-            serializer = RegisterSerializer(data=request.data)
-            if serializer.is_valid():
-                if serializer.validate(serializer.initial_data):
-                    serializer.save()
-                    return Response(data='SUCCESS', status=200)
-            return Response(data='INVALID_REGISTER_INFO', status=400)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+            return Response(data=serializer.data, status=200)
+        return Response(data='INVALID_REGISTER_INFO', status=400)
         
-        except KeyError:
-            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+    #@login_decorator
+    # def patch(self, request):
+    #     user = User.objects.get(id=110)
+    #     serializer = UserSerializer(user, data=request.data)
+    #     if serializer.id_valid()
+    #     print(serializer.data)
+    #     return Response(data='INVALID_REGISTER_INFO', status=400)
+        # if serializer.is_valid():
+        #     print('wowowowo')
 
-class LogInView(View):
+
+class LogInView(APIView):
     def post(self, request):
         try:
-            data             = json.loads(request.body)
-            user             = User.objects.get(email=data.get('email'))
-            email            = data.get('email', "")
-            password         = data.get('password', "")
-            email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+
+            # if serializer.is_valid() and validator(serializer.initial_data):
+            #     user = User.objects.get(email=serializer.validated_data['email'])
+            #     check_password(serializer.validated_data)
+            #     get_access_token(serializer.validated_data)
+                return Response(data='SUCCESS', access_token=serializer.data['access_token'], status=400)
+
+            return Response(data='INVALID_LOGIN_INFO', status=400)
+        
+        except Exception as e:
+            print('예외가 발생했습니다.', e)
+
+# class LogInView(View):
+#     def post(self, request):
+#         try:
+#             data             = json.loads(request.body)
+#             user             = User.objects.get(email=data.get('email'))
+#             email            = data.get('email', "")
+#             password         = data.get('password', "")
+#             email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
      
-            if not re.match(email_validation, email):
-                return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
+#             if not re.match(email_validation, email):
+#                 return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
 
-            if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-                return JsonResponse({'message':'WRONG_PASSWORD'}, status=400)
+#             if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+#                 return JsonResponse({'message':'WRONG_PASSWORD'}, status=400)
 
-            access_token = jwt.encode({'id':user.id}, SECRET_KEY, algorithm = ALGORITHM).decode('utf-8')
+#             access_token = jwt.encode({'id':user.id}, SECRET_KEY, algorithm = ALGORITHM).decode('utf-8')
 
-            return JsonResponse({'message':'SUCCESS', 'access_token':access_token}, status=200)
+#             return JsonResponse({'message':'SUCCESS', 'access_token':access_token}, status=200)
 
-        except User.DoesNotExist:
-            return JsonResponse({'message':'UNKNOWN_USER'}, status=400)
+#         except User.DoesNotExist:
+#             return JsonResponse({'message':'UNKNOWN_USER'}, status=400)
 
-        except KeyError:
-            return JsonResponse({'message':'KEY_ERROR'}, status=400)
+#         except KeyError:
+#             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 
 class FollowView(View):
