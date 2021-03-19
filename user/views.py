@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 import re, json, bcrypt, jwt
 
 from django.db        import transaction
@@ -14,30 +11,49 @@ from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, 
 from product.models   import Product
 from post.models      import Post, PostImage
 
-from rest_framework.views import APIView
+from rest_framework.views    import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from user.serializers import UserSerializer, LoginSerializer
+from user.serializers        import UserSerializer, LoginSerializer
 
 
-class RegisterView(APIView):
+class Register(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user = serializer.save()
+            serializer.save()
             return Response(data=serializer.data, status=200)
-        return Response(data='INVALID_REGISTER_INFO', status=400)
-        
-    #@login_decorator
-    # def patch(self, request):
-    #     user = User.objects.get(id=110)
-    #     serializer = UserSerializer(user, data=request.data)
-    #     if serializer.id_valid()
-    #     print(serializer.data)
-    #     return Response(data='INVALID_REGISTER_INFO', status=400)
-        # if serializer.is_valid():
-        #     print('wowowowo')
+        return Response(data="INFO_INVALID", status=400)
 
+    @login_decorator
+    def patch(self, request):
+        user = User.objects.get(id=request.user.id)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=200, context={'hello':'dkjdk'})
+        return Response(data='INFO_INVALID', status=400)
+
+# class RegisterView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body)
+#             email     = data['email']
+#             username  = data['username']
+#             password  = data['password']
+#             email_validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+#             if not re.match(email_validation, email):
+#                 return JsonResponse({'message':'INVALID_EMAIL'}, status=400)
+#             if User.objects.filter(Q(email=email) | Q(username=username)).exists():
+#                 return JsonResponse({'message':'EXIST_USER'}, status=400)
+#             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+#             User.objects.create(
+#                 username = username,
+#                 email    = email,
+#                 password = hashed_password
+#             )
+#             return JsonResponse({'message':'SUCCESS'}, status=200)
+#         except KeyError:
+#             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
 class LogInView(APIView):
     def post(self, request):

@@ -49,6 +49,9 @@ def check_password(self, value):
         except User.DoesNotExist:
             return Response(data='UNKNOWN_USER', status=400)
 
+def hash_password(value):
+    return bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
 def email_isvalid(value):
     try:
         validation = re.compile(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')

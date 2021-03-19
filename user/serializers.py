@@ -8,12 +8,21 @@ from rest_framework.response import Response
 from rest_framework.validators import UniqueTogetherValidator
 
 from .models import User
-from .utils import email_isvalid, password_isvalid, username_isvalid
+from .utils import (email_isvalid, 
+    password_isvalid, 
+    username_isvalid,
+    hash_password,
+)
 
 class UserSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'profile_image_url')
+        fields = ['user_id', 'email', 'username', 'password', 'profile_image_url']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
         validators = [
             UniqueTogetherValidator(
                 queryset=User.objects.all(),
@@ -28,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_password(self, obj):
         if password_isvalid(obj):
-            return bcrypt.hashpw(obj.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            return hash_password(obj)
         raise serializers.ValidationError("비밀번호는 8 자리 이상이어야 합니다.")
 
     def validate_username(self, obj):
@@ -36,6 +45,16 @@ class UserSerializer(serializers.ModelSerializer):
             return obj
         raise serializers.ValidationError('닉네임은 한 글자 이상이어야 합니다.')
 
+    def get_user_id(self, obj):
+        return obj.id
+
+    def update(self, obj, validated_data):
+        obj.email = validated_data.get('email', obj.email)
+        obj.username = validated_data.get('username', obj.username)
+        obj.password = hash_password(validated_data.get('password', obj.password))
+        obj.profile_image_url = validated_data.get('profile_image_url', obj.profile_image_url)
+        obj.save()
+        return obj
     
         
             
