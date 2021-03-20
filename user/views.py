@@ -6,7 +6,7 @@ from django.views     import View
 from django.http      import JsonResponse
 
 from my_settings      import SECRET_KEY, ALGORITHM
-from user.utils       import login_decorator, validator
+from user.utils       import login_decorator
 from user.models      import User, Follow, Like, PostBookmark, ProductBookmark, CollectionBookmark
 from product.models   import Product
 from post.models      import Post, PostImage
@@ -30,7 +30,7 @@ class Register(APIView):
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(data=serializer.data, status=200, context={'hello':'dkjdk'})
+            return Response(data=serializer.data, status=200)
         return Response(data='INFO_INVALID', status=400)
 
 # class RegisterView(View):
@@ -55,23 +55,17 @@ class Register(APIView):
 #         except KeyError:
 #             return JsonResponse({'message':'KEY_ERROR'}, status=400)
 
-class LogInView(APIView):
+class Login(APIView):
     def post(self, request):
         try:
-            serializer = LoginSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-
-            # if serializer.is_valid() and validator(serializer.initial_data):
-            #     user = User.objects.get(email=serializer.validated_data['email'])
-            #     check_password(serializer.validated_data)
-            #     get_access_token(serializer.validated_data)
-                return Response(data='SUCCESS', access_token=serializer.data['access_token'], status=400)
-
+            user = User.objects.get(email=request.data['email'])
+            serializer = LoginSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                return Response(data=serializer.data, status=400)
             return Response(data='INVALID_LOGIN_INFO', status=400)
         
-        except Exception as e:
-            print('예외가 발생했습니다.', e)
+        except User.DoesNotExist:
+            return Response(data='사용자가 존재하지 않습니다.', status=400)
 
 # class LogInView(View):
 #     def post(self, request):
